@@ -1,5 +1,10 @@
 # glibc without lock-elision
 
+**Fiddling with libc has the potential to break your system. If you don't
+understand 100% what's going on here, please talk to someone who does.**
+
+**Tested only on Ubuntu 15.10.**
+
 This is necessary for processors with the TSX feature to run Vivado 2016.2 and
 other versions.
 
