@@ -1,0 +1,29 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Map nice levels 1-to-1 with Mach prio levels
+
+* hurd/hurd/resource.h (MACH_PRIORITY_TO_NICE, NICE_TO_MACH_PRIORITY): Align
+nice levels on Mach priorities from 5 to 45.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ hurd/hurd/resource.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/hurd/hurd/resource.h b/hurd/hurd/resource.h
+index b8afc10..ec4273f 100644
+--- a/hurd/hurd/resource.h
++++ b/hurd/hurd/resource.h
+@@ -42,8 +42,8 @@ extern error_t _hurd_priority_which_map (enum __priority_which which, int who,
+ 
+ /* Convert between Mach priority values and the priority
+    values used by getpriority, setpriority, and nice.  */
+-#define MACH_PRIORITY_TO_NICE(prio) (2 * ((prio) - 12))
+-#define NICE_TO_MACH_PRIORITY(nice) (12 + ((nice) / 2))
++#define MACH_PRIORITY_TO_NICE(prio) ((prio) - 25)
++#define NICE_TO_MACH_PRIORITY(nice) ((nice) + 25)
+ 
+ 
+ 
+-- 
+tg: (4a7fa7e..) t/nice (depends on: baseline)

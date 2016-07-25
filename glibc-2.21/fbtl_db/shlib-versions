@@ -1,0 +1,3 @@
+# The thread debug library
+.*-.*-linux.*		libthread_db=1
+.*-.*-kfreebsd.*	libthread_db=1

@@ -1,0 +1,12 @@
+#
+# Allowed failures for arm-linux-gnueabihf-libc
+#
+posix/annexc
+elf/check-localplt
+debug/tst-backtrace6
+rt/tst-cpuclock2
+math/test-fenv
+rt/tst-cputimer1
+rt/tst-mqueue5
+rt/tst-timer
+posix/tst-waitid

@@ -1,0 +1,92 @@
+#
+# Allowed failures for i586-kfreebsd-gnu-libc
+#
+posix/annexc
+check-local-headers
+elf/check-localplt
+rt/tst-aio10
+rt/tst-aio4
+rt/tst-aio9
+debug/tst-backtrace4
+debug/tst-backtrace5
+debug/tst-backtrace6
+debug/tst-longjmp_chk
+io/tst-mknodat
+io/tst-renameat
+stdlib/tst-secure-getenv
+rt/tst-timer4
+rt/tst-timer5
+posix/tst-waitid
+#
+# will expectedly SIGSEGV on kfreebsd 10.0 and later, due to having
+# nxstack=1 by default (bug #762404)
+#
+elf/tst-execstack-needed
+elf/tst-execstack
+nptl/tst-execstack
+elf/tst-execstack-prog
+#
+# needs newer kernel - see #716746
+#
+rt/tst-cpuclock1
+rt/tst-cpuclock2
+rt/tst-cputimer1
+rt/tst-cputimer2
+rt/tst-cputimer3
+#
+# new in 2.19:
+#
+#   AT_EXECFN is unsupported
+elf/tst-auxv
+#   probably due to kernel
+rt/tst-shm
+#
+# fbtl, mainly unsupported PP, PI, ROBUST mutexes
+#
+nptl/tst-attr2
+nptl/tst-attr3
+nptl/tst-cancel24-static
+nptl/tst-cancel7
+nptl/tst-cancelx7
+nptl/tst-cond-except
+nptl/tst-cond24
+nptl/tst-cond25
+nptl/tst-default-attr
+nptl/tst-getpid1
+nptl/tst-getpid2
+nptl/tst-mutexpi1
+nptl/tst-mutexpi2
+nptl/tst-mutexpi3
+nptl/tst-mutexpi4
+nptl/tst-mutexpi5
+nptl/tst-mutexpi5a
+nptl/tst-mutexpi5a
+nptl/tst-mutexpi6
+nptl/tst-mutexpi7
+nptl/tst-mutexpi7a
+nptl/tst-mutexpi7a
+nptl/tst-mutexpi8
+nptl/tst-mutexpi8-static
+nptl/tst-mutexpi8-static
+nptl/tst-mutexpi9
+nptl/tst-pthread-attr-affinity
+nptl/tst-robust1
+nptl/tst-robust2
+nptl/tst-robust3
+nptl/tst-robust4
+nptl/tst-robust5
+nptl/tst-robust6
+nptl/tst-robust7
+nptl/tst-robust8
+nptl/tst-robust9
+nptl/tst-robustpi1
+nptl/tst-robustpi2
+nptl/tst-robustpi3
+nptl/tst-robustpi4
+nptl/tst-robustpi5
+nptl/tst-robustpi6
+nptl/tst-robustpi7
+nptl/tst-robustpi8
+nptl/tst-robustpi9
+elf/tst-tls6
+nptl/tst-tls6

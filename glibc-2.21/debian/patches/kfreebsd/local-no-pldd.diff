@@ -1,0 +1,35 @@
+--- a/elf/pldd.c
++++ b/elf/pldd.c
+@@ -90,6 +90,11 @@
+ int
+ main (int argc, char *argv[])
+ {
++#if !defined(__linux__)
++      fprintf (stderr," Unsupported utility\n");
++      return 1;
++#else      
++
+   /* Parse and process arguments.  */
+   int remaining;
+   argp_parse (&argp, argc, argv, 0, &remaining, NULL);
+@@ -194,6 +199,7 @@
+   close (dfd);
+ 
+   return status;
++#endif
+ }
+ 
+ 
+@@ -243,6 +249,7 @@
+   fprintf (stream, gettext ("Written by %s.\n"), "Ulrich Drepper");
+ }
+ 
++#if defined(__linux__)
+ 
+ #define CLASS 32
+ #include "pldd-xx.c"
+@@ -312,3 +319,4 @@
+ 
+   return retval;
+ }
++#endif

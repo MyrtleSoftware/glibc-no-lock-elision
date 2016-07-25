@@ -1,0 +1,19 @@
+#
+# Allowed failures for sparc-linux-gnu-sparc
+#
+posix/annexc
+elf/check-localplt
+debug/tst-backtrace2
+debug/tst-backtrace3
+debug/tst-backtrace4
+debug/tst-backtrace5
+debug/tst-backtrace6
+rt/tst-cpuclock2
+posix/tst-waitid
+rt/tst-cputimer1
+
+# Even if configured using --with-long-double-128, the biarch32 compiler
+# on sparc64 defaults to 64-bit doubles, causing the failure below. This
+# should be fixed by the following gcc patch:
+# http://gcc.gnu.org/ml/gcc-patches/2013-12/msg00318.html
+stdlib/isomac

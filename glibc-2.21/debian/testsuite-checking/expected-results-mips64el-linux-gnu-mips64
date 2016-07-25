@@ -1,0 +1,23 @@
+#
+# Allowed failures for mips64el-linux-gnu-mips64
+#
+posix/annexc
+stdio-common/bug22
+elf/check-execstack
+elf/check-localplt
+math/test-fenv
+math/test-misc
+elf/tst-audit1
+elf/tst-audit2
+elf/tst-audit8
+nptl/tst-cond16
+rt/tst-cpuclock2
+rt/tst-mqueue5
+rt/tst-timer
+elf/tst-tls2
+nptl/tst-tls2
+elf/tst-tls3
+nptl/tst-tls3
+posix/tst-waitid
+misc/tst-writev
+rt/tst-cputimer1

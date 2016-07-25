@@ -1,0 +1,20 @@
+Description: XFAIL more instances of stdlib linknamespace sadness
+Author: Adam Conrad <adconrad@ubuntu.com>
+
+--- glibc-2.21.orig/conform/Makefile
++++ glibc-2.21/conform/Makefile
+@@ -350,6 +350,7 @@ test-xfail-XPG3/glob.h/linknamespace = y
+ test-xfail-XPG3/regex.h/linknamespace = yes
+ test-xfail-XPG3/search.h/linknamespace = yes
+ test-xfail-XPG3/stdio.h/linknamespace = yes
++test-xfail-XPG3/stdlib.h/linknamespace = yes
+ test-xfail-XPG3/unistd.h/linknamespace = yes
+ test-xfail-XPG3/wordexp.h/linknamespace = yes
+ test-xfail-XPG4/fmtmsg.h/linknamespace = yes
+@@ -413,5 +414,6 @@ test-xfail-XOPEN2K8/pwd.h/linknamespace
+ test-xfail-XOPEN2K8/regex.h/linknamespace = yes
+ test-xfail-XOPEN2K8/search.h/linknamespace = yes
+ test-xfail-XOPEN2K8/spawn.h/linknamespace = yes
++test-xfail-XOPEN2K8/stdlib.h/linknamespace = yes
+ test-xfail-XOPEN2K8/syslog.h/linknamespace = yes
+ test-xfail-XOPEN2K8/unistd.h/linknamespace = yes

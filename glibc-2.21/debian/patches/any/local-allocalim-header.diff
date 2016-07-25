@@ -1,0 +1,15 @@
+---
+ sysdeps/unix/sysv/linux/check_pf.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/sysdeps/unix/sysv/linux/check_pf.c
++++ b/sysdeps/unix/sysv/linux/check_pf.c
+@@ -24,6 +24,8 @@
+ #include <string.h>
+ #include <time.h>
+ #include <unistd.h>
++#include <alloca.h>
++#include <stdlib.h>
+ #include <stdint.h>
+ #include <sys/socket.h>
+ 

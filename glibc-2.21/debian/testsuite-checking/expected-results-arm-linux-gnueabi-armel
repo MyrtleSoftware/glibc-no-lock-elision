@@ -1,0 +1,15 @@
+#
+# Allowed failures for arm-linux-gnueabi-armel
+#
+posix/annexc
+elf/check-localplt
+debug/tst-backtrace6
+rt/tst-cpuclock2
+rt/tst-cputimer1
+math/test-misc
+rt/tst-mqueue5
+rt/tst-timer
+posix/tst-waitid
+
+# This can be removed once bug#748616 is fixed
+math/basic-test

@@ -1,0 +1,67 @@
+commit 95c26233a1c7dd73a852a4f3bffd2d2eeba5e2fd
+Author: Joseph Myers <joseph@codesourcery.com>
+Date:   Fri Feb 13 16:20:36 2015 +0000
+
+    Fix powerpc software sqrtf (bug 17967).
+    
+    Similarly to sqrt in
+    <https://sourceware.org/ml/libc-alpha/2015-02/msg00353.html>, the
+    powerpc sqrtf implementation for when _ARCH_PPCSQ is not defined also
+    relies on a * b + c being contracted into a fused multiply-add.
+    Although this contraction is not explicitly disabled for e_sqrtf.c, it
+    still seems appropriate to make the file explicit about its
+    requirements by using __builtin_fmaf; this patch does so.
+    Furthermore, it turns out that doing so fixes the observed inaccuracy
+    and missing exceptions (that is, that without explicit __builtin_fmaf
+    usage, it was not being compiled as intended).
+    
+    Tested for powerpc32 (hard float).
+    
+    	[BZ #17967]
+    	* sysdeps/powerpc/fpu/e_sqrtf.c (__slow_ieee754_sqrtf): Use
+    	__builtin_fmaf instead of relying on contraction of a * b + c.
+
+diff --git a/sysdeps/powerpc/fpu/e_sqrtf.c b/sysdeps/powerpc/fpu/e_sqrtf.c
+index 034b6f5..a684cf9 100644
+--- a/sysdeps/powerpc/fpu/e_sqrtf.c
++++ b/sysdeps/powerpc/fpu/e_sqrtf.c
+@@ -87,26 +87,28 @@ __slow_ieee754_sqrtf (float x)
+ 	  /* Here we have three Newton-Raphson iterations each of a
+ 	     division and a square root and the remainder of the
+ 	     argument reduction, all interleaved.   */
+-	  sd = -(sg * sg - sx);
++	  sd = -__builtin_fmaf (sg, sg, -sx);
+ 	  fsgi = (xi + 0x40000000) >> 1 & 0x7f800000;
+ 	  sy2 = sy + sy;
+-	  sg = sy * sd + sg;	/* 16-bit approximation to sqrt(sx). */
+-	  e = -(sy * sg - almost_half);
++	  sg = __builtin_fmaf (sy, sd, sg);	/* 16-bit approximation to
++						   sqrt(sx). */
++	  e = -__builtin_fmaf (sy, sg, -almost_half);
+ 	  SET_FLOAT_WORD (fsg, fsgi);
+-	  sd = -(sg * sg - sx);
+-	  sy = sy + e * sy2;
++	  sd = -__builtin_fmaf (sg, sg, -sx);
++	  sy = __builtin_fmaf (e, sy2, sy);
+ 	  if ((xi & 0x7f800000) == 0)
+ 	    goto denorm;
+ 	  shx = sx * fsg;
+-	  sg = sg + sy * sd;	/* 32-bit approximation to sqrt(sx),
+-				   but perhaps rounded incorrectly.  */
++	  sg = __builtin_fmaf (sy, sd, sg);	/* 32-bit approximation to
++						   sqrt(sx), but perhaps
++						   rounded incorrectly.  */
+ 	  sy2 = sy + sy;
+ 	  g = sg * fsg;
+-	  e = -(sy * sg - almost_half);
+-	  d = -(g * sg - shx);
+-	  sy = sy + e * sy2;
++	  e = -__builtin_fmaf (sy, sg, -almost_half);
++	  d = -__builtin_fmaf (g, sg, -shx);
++	  sy = __builtin_fmaf (e, sy2, sy);
+ 	  fesetenv_register (fe);
+-	  return g + sy * d;
++	  return __builtin_fmaf (sy, d, g);
+ 	denorm:
+ 	  /* For denormalised numbers, we normalise, calculate the
+ 	     square root, and return an adjusted result.  */

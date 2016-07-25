@@ -1,0 +1,14 @@
+libc {
+  GLIBC_2.4 {
+    ioperm; iopl;
+    inb; inw; inl;
+    outb; outw; outl;
+  }
+  GLIBC_2.11 {
+    fallocate64;
+  }
+  GLIBC_PRIVATE {
+    # A copy of sigaction lives in libpthread, and needs these.
+    __default_sa_restorer; __default_rt_sa_restorer;
+  }
+}

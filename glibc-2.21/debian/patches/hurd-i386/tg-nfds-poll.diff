@@ -1,0 +1,23 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] allow poll() array bigger than FD_SETSIZE
+
+* hurd/hurdselect.c (_hurd_select): In the poll case, do not return EINVAL when
+nfds is greater than FD_SETSIZE.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ hurd/hurdselect.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/hurd/hurdselect.c
++++ b/hurd/hurdselect.c
+@@ -74,7 +74,7 @@ _hurd_select (int nfds,
+   assert (sizeof (union typeword) == sizeof (mach_msg_type_t));
+   assert (sizeof (uint32_t) == sizeof (mach_msg_type_t));
+ 
+-  if (nfds < 0 || nfds > FD_SETSIZE)
++  if (nfds < 0 || (!pollfds && nfds > FD_SETSIZE))
+     {
+       errno = EINVAL;
+       return -1;

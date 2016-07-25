@@ -1,0 +1,190 @@
+Description: Fix abilists to match ABI additions from local-libgcc-compat*
+Author: Adam Conrad <adconrad@0c3.net>
+Last-Update: 2015-03-19
+
+--- glibc-2.21.orig/sysdeps/unix/sysv/linux/alpha/libc.abilist
++++ glibc-2.21/sysdeps/unix/sysv/linux/alpha/libc.abilist
+@@ -179,6 +179,7 @@ GLIBC_2.0
+  __mempcpy F
+  __monstartup F
+  __morecore D 0x8
++ __multi3 F
+  __nss_configure_lookup F
+  __nss_database_lookup F
+  __nss_group_lookup F
+--- glibc-2.21.orig/sysdeps/unix/sysv/linux/i386/libc.abilist
++++ glibc-2.21/sysdeps/unix/sysv/linux/i386/libc.abilist
+@@ -111,6 +111,7 @@ GLIBC_2.0
+  __check_rhosts_file D 0x4
+  __clone F
+  __close F
++ __cmpdi2 F
+  __cmsg_nxthdr F
+  __connect F
+  __ctype32_b D 0x4
+@@ -134,6 +135,9 @@ GLIBC_2.0
+  __finite F
+  __finitef F
+  __finitel F
++ __fixunsdfdi F
++ __fixunsxfdi F
++ __floatdidf F
+  __fork F
+  __fpu_control D 0x2
+  __frame_state_for F
+@@ -232,6 +236,7 @@ GLIBC_2.0
+  __sysv_signal F
+  __timezone D 0x4
+  __tzname D 0x8
++ __ucmpdi2 F
+  __udivdi3 F
+  __uflow F
+  __umoddi3 F
+--- glibc-2.21.orig/sysdeps/unix/sysv/linux/mips/mips32/fpu/libc.abilist
++++ glibc-2.21/sysdeps/unix/sysv/linux/mips/mips32/fpu/libc.abilist
+@@ -111,6 +111,7 @@ GLIBC_2.0
+  __check_rhosts_file D 0x4
+  __clone F
+  __close F
++ __cmpdi2 F
+  __cmsg_nxthdr F
+  __connect F
+  __ctype32_b D 0x4
+@@ -125,6 +126,7 @@ GLIBC_2.0
+  __deregister_frame F
+  __deregister_frame_info F
+  __dgettext F
++ __divdi3 F
+  __dup2 F
+  __environ D 0x4
+  __errno_location F
+@@ -133,6 +135,9 @@ GLIBC_2.0
+  __finite F
+  __finitef F
+  __finitel F
++ __fixdfdi F
++ __floatdidf F
++ __floatdisf F
+  __fork F
+  __fpu_control D 0x4
+  __frame_state_for F
+@@ -172,6 +177,7 @@ GLIBC_2.0
+  __mbrtowc F
+  __memalign_hook D 0x4
+  __mempcpy F
++ __moddi3 F
+  __monstartup F
+  __morecore D 0x4
+  __nss_configure_lookup F
+@@ -230,7 +236,10 @@ GLIBC_2.0
+  __sysv_signal F
+  __timezone D 0x4
+  __tzname D 0x8
++ __ucmpdi2 F
++ __udivdi3 F
+  __uflow F
++ __umoddi3 F
+  __underflow F
+  __vfscanf F
+  __vsnprintf F
+--- glibc-2.21.orig/sysdeps/unix/sysv/linux/s390/s390-32/libc.abilist
++++ glibc-2.21/sysdeps/unix/sysv/linux/s390/s390-32/libc.abilist
+@@ -111,6 +111,7 @@ GLIBC_2.0
+  __check_rhosts_file D 0x4
+  __clone F
+  __close F
++ __cmpdi2 F
+  __cmsg_nxthdr F
+  __connect F
+  __ctype32_b D 0x4
+@@ -134,6 +135,12 @@ GLIBC_2.0
+  __finite F
+  __finitef F
+  __finitel F
++ __fixdfdi F
++ __fixsfdi F
++ __fixunsdfdi F
++ __fixunssfdi F
++ __floatdidf F
++ __floatdisf F
+  __fork F
+  __fpu_control D 0x4
+  __frame_state_for F
+@@ -232,6 +239,7 @@ GLIBC_2.0
+  __sysv_signal F
+  __timezone D 0x4
+  __tzname D 0x8
++ __ucmpdi2 F
+  __udivdi3 F
+  __uflow F
+  __umoddi3 F
+--- glibc-2.21.orig/sysdeps/unix/sysv/linux/sparc/sparc32/libc.abilist
++++ glibc-2.21/sysdeps/unix/sysv/linux/sparc/sparc32/libc.abilist
+@@ -110,6 +110,8 @@ GLIBC_2.0
+  __argz_count F
+  __argz_next F
+  __argz_stringify F
++ __ashldi3 F
++ __ashrdi3 F
+  __assert_fail F
+  __assert_perror_fail F
+  __bsd_getpgrp F
+@@ -117,6 +119,7 @@ GLIBC_2.0
+  __check_rhosts_file D 0x4
+  __clone F
+  __close F
++ __cmpdi2 F
+  __cmsg_nxthdr F
+  __connect F
+  __ctype32_b D 0x4
+@@ -131,6 +134,7 @@ GLIBC_2.0
+  __deregister_frame F
+  __deregister_frame_info F
+  __dgettext F
++ __divdi3 F
+  __dup2 F
+  __environ D 0x4
+  __errno_location F
+@@ -139,6 +143,12 @@ GLIBC_2.0
+  __finite F
+  __finitef F
+  __finitel F
++ __fixdfdi F
++ __fixsfdi F
++ __fixunsdfdi F
++ __fixunssfdi F
++ __floatdidf F
++ __floatdisf F
+  __fork F
+  __fpu_control D 0x4
+  __frame_state_for F
+@@ -171,6 +181,7 @@ GLIBC_2.0
+  __libc_start_main F
+  __libc_valloc F
+  __lseek F
++ __lshrdi3 F
+  __lxstat F
+  __malloc_hook D 0x4
+  __malloc_initialize_hook D 0x4
+@@ -178,8 +189,10 @@ GLIBC_2.0
+  __mbrtowc F
+  __memalign_hook D 0x4
+  __mempcpy F
++ __moddi3 F
+  __monstartup F
+  __morecore D 0x4
++ __muldi3 F
+  __nss_configure_lookup F
+  __nss_database_lookup F
+  __nss_group_lookup F
+@@ -236,7 +249,10 @@ GLIBC_2.0
+  __sysv_signal F
+  __timezone D 0x4
+  __tzname D 0x8
++ __ucmpdi2 F
++ __udivdi3 F
+  __uflow F
++ __umoddi3 F
+  __underflow F
+  __vfscanf F
+  __vsnprintf F

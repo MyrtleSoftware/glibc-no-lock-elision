@@ -1,0 +1,64 @@
+---
+ abi-tags                       |    2 +-
+ configure                      |    4 +++-
+ configure.in                   |    4 +++-
+ shlib-versions                 |    4 ++++
+ 6 files changed, 14 insertions(+), 4 deletions(-)
+
+--- a/abi-tags
++++ b/abi-tags
+@@ -22,7 +22,7 @@
+ 
+ .*-sun-solaris2.*	2	2.0.0	# just an arbitrary value
+ 
+-.*-.*-freebsd.*-gnu.*	3	4.0.0	# earliest compatible kernel version
++.*-.*-kfreebsd.*	3	5.4.0	# earliest compatible kernel version
+ 
+ .*-.*-knetbsd.*-gnu.*	4	1.6.0	# earliest compatible kernel version
+ 
+--- a/configure
++++ b/configure
+@@ -4045,7 +4045,7 @@
+ ###
+ if test -z "$enable_hacker_mode" && test x"$libc_config_ok" != xyes; then
+   case "$machine-$host_os" in
+-  *-linux* | *-gnu*)
++  *-linux* | *-gnu* | *-kfreebsd*)
+     ;;
+   *)
+     echo "*** The GNU C library is currently not available for this platform."
+@@ -4242,6 +4242,8 @@
+   base_os=mach/hurd ;;
+ linux*)
+   base_os=unix/sysv ;;
++k*bsd*)
++  base_os=unix/bsd/bsd4.4 ;;
+ esac
+ 
+ # For sunos4.1.1, try sunos4.1.1, then sunos4.1, then sunos4, then sunos.
+--- a/configure.ac
++++ b/configure.ac
+@@ -505,7 +505,7 @@
+ ###
+ if test -z "$enable_hacker_mode" && test x"$libc_config_ok" != xyes; then
+   case "$machine-$host_os" in
+-  *-linux* | *-gnu*)
++  *-linux* | *-gnu* | *-kfreebsd*)
+     ;;
+   *)
+     echo "*** The GNU C library is currently not available for this platform."
+@@ -659,6 +659,8 @@
+   base_os=mach/hurd ;;
+ linux*)
+   base_os=unix/sysv ;;
++k*bsd*)
++  base_os=unix/bsd/bsd4.4 ;;
+ esac
+ 
+ # For sunos4.1.1, try sunos4.1.1, then sunos4.1, then sunos4, then sunos.
+--- /dev/null	2015-03-01 02:33:07.009060261 -0700
++++ b/sysdeps/unix/bsd/bsd4.4/kfreebsd/shlib-versions	2015-03-16 01:53:36.389707455 -0600
+@@ -0,0 +1,3 @@
++DEFAULT			GLIBC_2.3
++libc=0.1	
++libm=1

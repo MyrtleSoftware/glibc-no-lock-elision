@@ -1,0 +1,14 @@
+Temporarly make tst-xmmymm.sh fail, since it seems to hang.
+
+--- a/sysdeps/x86/tst-xmmymm.sh
++++ b/sysdeps/x86/tst-xmmymm.sh
+@@ -19,6 +19,9 @@
+ 
+ set -e
+ 
++echo "Temporarly disabled on GNU/Hurd -- investigate"
++exit 1
++
+ objpfx="$1"
+ NM="$2"
+ OBJDUMP="$3"

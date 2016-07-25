@@ -1,0 +1,101 @@
+#
+# Allowed failures for i586-gnu-libc
+#
+# sysdeps/mach/hurd/dl-sysdep.c's open_file does not support the linker creating
+# files.
+elf/tst-null-argv
+#
+# Need actual porting
+rt/tst-cputimer1
+rt/tst-cputimer2
+rt/tst-cputimer3
+rt/tst-mqueue5
+misc/tst-pselect
+rt/tst-timer2
+rt/tst-timer4
+rt/tst-timer5
+elf/tst-ptrguard1-static
+elf/tst-ptrguard1
+#
+# Needs /proc/self/exe
+stdlib/tst-secure-getenv
+#
+# We don't have auxv yet
+elf/tst-auxv
+#
+# sysdeps/posix/shm_open.c lets caller escape the shm/ directory
+rt/tst-shm
+#
+# Overzealous test
+posix/tst-pathconf
+#
+# Need investigation
+posix/annexc
+stdio-common/bug22
+stdlib/bug-getcontext
+posix/bug-regex31-mem
+elf/check-execstack
+check-local-headers
+elf/check-localplt
+elf/check-textrel
+dirent/opendir-tst1
+assert/test-assert-perr
+assert/test-assert
+math/test-float
+math/test-idouble
+math/test-ifloat
+io/test-lfs
+rt/tst-aio10
+rt/tst-aio8
+rt/tst-aio9
+elf/tst-audit1
+elf/tst-audit2
+elf/tst-audit8
+debug/tst-backtrace4
+debug/tst-backtrace5
+debug/tst-backtrace6
+debug/tst-chk1
+debug/tst-chk2
+debug/tst-chk3
+debug/tst-chk4
+debug/tst-chk5
+debug/tst-chk6
+elf/tst-dlmopen1
+misc/tst-error1-mem
+dirent/tst-fdopendir2
+dirent/tst-fdopendir
+posix/tst-fnmatch-mem
+io/tst-futimesat
+posix/tst-getconf
+intl/tst-gettext4
+intl/tst-gettext5
+intl/tst-gettext6
+login/tst-grantpt
+debug/tst-lfschk1
+debug/tst-lfschk2
+debug/tst-lfschk3
+debug/tst-lfschk4
+debug/tst-lfschk5
+debug/tst-lfschk6
+debug/tst-longjmp_chk2
+gmon/tst-sprofil
+elf/tst-stackguard1-static
+nptl/tst-stackguard1-static
+elf/tst-stackguard1
+nptl/tst-stackguard1
+stdlib/tst-strtod-round
+nptl/tst-sysconf
+posix/tst-sysconf
+rt/tst-timer
+elf/tst-tls18
+elf/tst-tls9-static
+posix/tst-vfork3-mem
+posix/tst-waitid
+dlfcn/tststatic
+dlfcn/tststatic2
+dlfcn/tststatic3
+dlfcn/tststatic4
+dlfcn/tststatic5
+# happens seldomly
+rt/tst-clock_nanosleep
+posix/tst-nanosleep

@@ -1,0 +1,80 @@
+commit 298e5d56dca199aea2c18ef27dd33bd82c879ee4
+Author: Roland McGrath <roland@hack.frob.com>
+Date:   Thu Mar 19 12:45:24 2015 -0700
+
+    ARM: Fix memcpy & memmove for [ARM_ALWAYS_BX]
+
+diff --git a/sysdeps/arm/memcpy.S b/sysdeps/arm/memcpy.S
+index 0602d99..3e41ea6 100644
+--- a/sysdeps/arm/memcpy.S
++++ b/sysdeps/arm/memcpy.S
+@@ -125,7 +125,12 @@ ENTRY(memcpy)
+ 		push	{r10}
+ 		cfi_adjust_cfa_offset (4)
+ 		cfi_rel_offset (r10, 0)
+-		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
++0:		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
++		/* If alignment is not perfect, then there will be some
++		   padding (nop) instructions between this BX and label 6.
++		   The computation above assumed that two instructions
++		   later is exactly the right spot.  */
++		add	r10, #(6f - (0b + PC_OFS))
+ 		bx	r10
+ #endif
+ 		.p2align ARM_BX_ALIGN_LOG2
+@@ -156,11 +161,16 @@ ENTRY(memcpy)
+ 		add	pc, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+ 		nop
+ #else
+-		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
++0:		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
++		/* If alignment is not perfect, then there will be some
++		   padding (nop) instructions between this BX and label 66.
++		   The computation above assumed that two instructions
++		   later is exactly the right spot.  */
++		add	r10, #(66f - (0b + PC_OFS))
+ 		bx	r10
+ #endif
+ 		.p2align ARM_BX_ALIGN_LOG2
+-		nop
++66:		nop
+ 		.p2align ARM_BX_ALIGN_LOG2
+ 		sfi_breg r0, \
+ 		str	r3, [\B], #4
+diff --git a/sysdeps/arm/memmove.S b/sysdeps/arm/memmove.S
+index f8a4eff..dde877e 100644
+--- a/sysdeps/arm/memmove.S
++++ b/sysdeps/arm/memmove.S
+@@ -141,7 +141,12 @@ ENTRY(memmove)
+ 		push	{r10}
+ 		cfi_adjust_cfa_offset (4)
+ 		cfi_rel_offset (r10, 0)
+-		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
++0:		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
++		/* If alignment is not perfect, then there will be some
++		   padding (nop) instructions between this BX and label 6.
++		   The computation above assumed that two instructions
++		   later is exactly the right spot.  */
++		add	r10, #(6f - (0b + PC_OFS))
+ 		bx	r10
+ #endif
+ 		.p2align ARM_BX_ALIGN_LOG2
+@@ -172,11 +177,16 @@ ENTRY(memmove)
+ 		add	pc, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+ 		nop
+ #else
+-		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
++0:		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
++		/* If alignment is not perfect, then there will be some
++		   padding (nop) instructions between this BX and label 66.
++		   The computation above assumed that two instructions
++		   later is exactly the right spot.  */
++		add	r10, #(66f - (0b + PC_OFS))
+ 		bx	r10
+ #endif
+ 		.p2align ARM_BX_ALIGN_LOG2
+-		nop
++66:		nop
+ 		.p2align ARM_BX_ALIGN_LOG2
+ 		sfi_breg r0, \
+ 		str	r3, [\B, #-4]!

@@ -1,0 +1,24 @@
+# All lines beginning with `# DP:' are a description of the patch.
+# DP: Description: Fix lang_* fields in LC_ADDRESS
+# DP: Related bugs: 
+# DP: Dpatch author: Denis Barbier
+# DP: Patch author: Denis Barbier
+# DP: Upstream status: Not submitted
+# DP: Status Details:
+# DP: Date: 2006-01-20
+
+---
+ localedata/locales/tr_TR |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- a/localedata/locales/tr_TR
++++ b/localedata/locales/tr_TR
+@@ -1594,7 +1594,7 @@
+ % tur
+ lang_term	"<U0074><U0075><U0072>"
+ % tur
+-lang_lib	"<U0074><U0072>"
++lang_lib	"<U0074><U0075><U0072>"
+ %tr
+ lang_ab		"<U0074><U0072>"
+ END LC_ADDRESS

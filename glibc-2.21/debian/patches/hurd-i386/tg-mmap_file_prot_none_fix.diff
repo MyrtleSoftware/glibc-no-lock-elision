@@ -1,0 +1,40 @@
+From: Richard Braun <rbraun@sceen.net>
+Subject: [PATCH] t/mmap_file_prot_none_fix
+
+Allow mmap to handle mapping requests on files despite protection set to
+PROT_NONE.
+
+---
+ sysdeps/mach/hurd/mmap.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/sysdeps/mach/hurd/mmap.c b/sysdeps/mach/hurd/mmap.c
+index 6ee3146..b947815 100644
+--- a/sysdeps/mach/hurd/mmap.c
++++ b/sysdeps/mach/hurd/mmap.c
+@@ -97,6 +97,14 @@ __mmap (__ptr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
+ 	  }
+ 	switch (prot & (PROT_READ|PROT_WRITE))
+ 	  {
++	  /* Although it apparently doesn't make sense to map a file with
++	     protection set to PROT_NONE, it is actually sometimes done.
++	     In particular, that's how localedef reserves some space for
++	     the locale archive file, the rationale being that some
++	     implementations take into account whether the mapping is
++	     anonymous or not when selecting addresses.  */
++	  case PROT_NONE:
++
+ 	  case PROT_READ:
+ 	    memobj = robj;
+ 	    if (wobj != MACH_PORT_NULL)
+@@ -126,8 +134,6 @@ __mmap (__ptr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
+ 		return (__ptr_t) (long int) __hurd_fail (EACCES);
+ 	      }
+ 	    break;
+-	  default:		/* impossible */
+-	    return 0;
+ 	  }
+ 	break;
+ 	/* XXX handle MAP_NOEXTEND */
+-- 
+tg: (9a079e2..) t/mmap_file_prot_none_fix (depends on: baseline)

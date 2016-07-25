@@ -1,0 +1,20 @@
+#
+# Allowed failures for alphaev67-linux-gnu-alphaev67
+#
+posix/annexc
+elf/check-localplt
+string/noinl-tester
+rt/tst-cpuclock2
+nptl/tst-eintr1
+rt/tst-mqueue5
+nptl/tst-signal3
+rt/tst-timer
+rt/tst-timer4
+posix/tst-waitid
+misc/tst-writev
+
+# Broken due to binutils bug
+# http://sourceware.org/bugzilla/show_bug.cgi?id=12608
+elf/tst-tls10
+elf/tst-tls11
+rt/tst-cputimer1

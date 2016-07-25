@@ -1,0 +1,28 @@
+We need to set MACH_RCV_INTERRUPT to avoid __mach_msg looping on signals, and
+then handle the interruption.
+
+---
+ hurdselect.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+--- a/hurd/hurdselect.c
++++ b/hurd/hurdselect.c
+@@ -332,7 +332,7 @@ _hurd_select (int nfds,
+       mach_msg_option_t options = (timeout == NULL ? 0 : MACH_RCV_TIMEOUT);
+       error_t msgerr;
+       while ((msgerr = __mach_msg (&msg.head,
+-				   MACH_RCV_MSG | options,
++				   MACH_RCV_MSG | MACH_RCV_INTERRUPT | options,
+ 				   0, sizeof msg, portset, to,
+ 				   MACH_PORT_NULL)) == MACH_MSG_SUCCESS)
+ 	{
+@@ -411,6 +411,9 @@ _hurd_select (int nfds,
+ 	   effect a poll, so ERR is MACH_RCV_TIMED_OUT when the poll finds no
+ 	   message waiting.  */
+ 	err = 0;
++      if (msgerr == MACH_RCV_INTERRUPTED)
++	/* Interruption on our side (e.g. signal reception).  */
++	err = EINTR;
+ 
+       if (got)
+ 	/* At least one descriptor is known to be ready now, so we will

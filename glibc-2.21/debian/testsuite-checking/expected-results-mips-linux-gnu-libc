@@ -1,0 +1,16 @@
+#
+# Allowed failures for mips-linux-gnu-libc
+#
+posix/annexc
+stdio-common/bug22
+elf/check-execstack
+elf/check-localplt
+elf/tst-audit1
+elf/tst-audit2
+elf/tst-audit8
+nptl/tst-cond16
+rt/tst-cpuclock2
+rt/tst-mqueue5
+rt/tst-timer
+posix/tst-waitid
+rt/tst-cputimer1

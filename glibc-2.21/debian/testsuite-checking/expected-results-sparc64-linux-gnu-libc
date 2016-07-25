@@ -1,0 +1,10 @@
+#
+# Allowed failures for sparc64-linux-gnu-libc
+#
+posix/annexc
+elf/check-localplt
+rt/tst-cpuclock2
+rt/tst-timer
+posix/tst-waitid
+misc/tst-writev
+rt/tst-cputimer1

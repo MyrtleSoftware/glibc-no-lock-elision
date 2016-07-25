@@ -1,0 +1,11 @@
+#
+# Allowed failures for x86_64-linux-gnux32-libc
+#
+posix/annexc
+debug/tst-backtrace6
+rt/tst-cpuclock2
+rt/tst-mqueue5
+rt/tst-timer
+posix/tst-waitid
+misc/tst-writev
+rt/tst-cputimer1

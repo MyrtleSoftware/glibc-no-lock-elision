@@ -1,0 +1,25 @@
+#
+# Allowed failures for powerpc-linux-gnuspe-libc
+#
+posix/annexc
+math/bug-nextafter
+math/bug-nexttoward
+elf/check-localplt
+iconvdata/iconv-test
+stdlib/isomac
+math/test-double
+math/test-fenv
+math/test-float
+math/test-idouble
+math/test-ifloat
+math/test-misc
+debug/tst-backtrace5
+debug/tst-backtrace6
+nptl/tst-cancel4
+nptl/tst-cancel5
+nptl/tst-cancelx4
+nptl/tst-cancelx5
+rt/tst-cputimer1
+nptl/tst-key1
+nptl/tst-key4
+fpu/tst-setcontext-fpscr

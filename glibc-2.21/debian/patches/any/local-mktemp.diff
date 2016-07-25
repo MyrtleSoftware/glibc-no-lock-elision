@@ -1,0 +1,12 @@
+---
+ misc/mktemp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/misc/mktemp.c
++++ b/misc/mktemp.c
+@@ -32,4 +32,4 @@
+ }
+ weak_alias (__mktemp, mktemp)
+ 
+-link_warning (mktemp, "the use of `mktemp' is dangerous, better use `mkstemp'")
++link_warning (mktemp, "the use of `mktemp' is dangerous, better use `mkstemp' or `mkdtemp'")

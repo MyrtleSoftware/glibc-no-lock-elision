@@ -1,0 +1,30 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH,HURD] Fix build with pthread aio
+
+* sysdeps/pthread/aio_misc.c [!AIO_PRIO_DELTA_MAX]: Do not check priority
+against unexistent AIO_PRIO_DELTA_MAX.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ sysdeps/pthread/aio_misc.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/sysdeps/pthread/aio_misc.c b/sysdeps/pthread/aio_misc.c
+index 79153c8..615a11f 100644
+--- a/sysdeps/pthread/aio_misc.c
++++ b/sysdeps/pthread/aio_misc.c
+@@ -311,7 +311,10 @@ __aio_enqueue_request (aiocb_union *aiocbp, int operation)
+   if (operation == LIO_SYNC || operation == LIO_DSYNC)
+     aiocbp->aiocb.aio_reqprio = 0;
+   else if (aiocbp->aiocb.aio_reqprio < 0
+-	   || aiocbp->aiocb.aio_reqprio > AIO_PRIO_DELTA_MAX)
++#ifdef AIO_PRIO_DELTA_MAX
++	   || aiocbp->aiocb.aio_reqprio > AIO_PRIO_DELTA_MAX
++#endif
++	   )
+     {
+       /* Invalid priority value.  */
+       __set_errno (EINVAL);
+-- 
+tg: (9a079e2..) t/aio_misc (depends on: baseline)

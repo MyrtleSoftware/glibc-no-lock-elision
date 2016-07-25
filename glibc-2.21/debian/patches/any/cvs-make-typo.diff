@@ -1,0 +1,19 @@
+commit e8b6be0016f131c2ac72bf3213eabdb59800e63b
+Author: Andreas Schwab <schwab@suse.de>
+Date:   Mon Mar 2 15:47:56 2015 +0100
+
+    Fix parallel build error
+
+diff --git a/elf/Makefile b/elf/Makefile
+index 20b1682..711beed 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -362,7 +362,7 @@ $(objpfx)interp.os: $(elf-objpfx)runtime-linker.h
+ 
+ $(elf-objpfx)runtime-linker.h: $(elf-objpfx)runtime-linker.st; @:
+ $(elf-objpfx)runtime-linker.st: $(common-objpfx)config.make
+-	$(name-target-directory)
++	$(make-target-directory)
+ 	echo '#define RUNTIME_LINKER "$(rtlddir)/$(rtld-installed-name)"' \
+ 		> ${@:st=T}
+ 	$(move-if-change) ${@:st=T} ${@:st=h}

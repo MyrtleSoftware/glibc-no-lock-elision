@@ -1,0 +1,19 @@
+#
+# Allowed failures for powerpc-linux-gnu-libc
+#
+posix/annexc
+elf/check-localplt
+debug/tst-backtrace5
+debug/tst-backtrace6
+rt/tst-cpuclock2
+rt/tst-mqueue5
+rt/tst-timer
+posix/tst-waitid
+rt/tst-cputimer1
+
+# Failures due to a GCC bug, see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59412
+#                            and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=64811
+math/test-double
+math/test-float
+math/test-idouble
+math/test-ifloat

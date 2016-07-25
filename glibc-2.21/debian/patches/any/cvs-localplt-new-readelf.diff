@@ -1,0 +1,31 @@
+commit a0af371c25ac1f215cf0db64e54cbb9a1b51f78c
+Author: Alan Modra <amodra@gmail.com>
+Date:   Fri Feb 20 15:23:28 2015 +1030
+
+    Fix localplt test breakage with new readelf
+    
+    Since 2014-11-24 binutils git commit bb4d2ac2, readelf has appended
+    the symbol version to symbols shown in reloc dumps.
+    
+    	[BZ #16512]
+    	* scripts/localplt.awk: Strip off symbol version.
+    	* NEWS: Mention bug fix.
+
+diff --git a/scripts/localplt.awk b/scripts/localplt.awk
+index f55c41a..84c94d1 100644
+--- a/scripts/localplt.awk
++++ b/scripts/localplt.awk
+@@ -35,11 +35,11 @@ in_relocs && relocs_offset == jmprel_offset && NF >= 5 {
+   # Relocations against GNU_IFUNC symbols are not shown as an hexadecimal
+   # value, but rather as the resolver symbol followed by ().
+   if ($4 ~ /\(\)/) {
+-    print whatfile, $5
++    print whatfile, gensub(/@.*/, "", "g", $5)
+   } else {
+     symval = strtonum("0x" $4);
+     if (symval != 0)
+-      print whatfile, $5
++      print whatfile, gensub(/@.*/, "", "g", $5)
+   }
+ }
+ 

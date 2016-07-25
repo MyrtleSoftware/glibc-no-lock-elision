@@ -1,0 +1,26 @@
+commit fd15a59b20220a2d89d628ecebfcaad1ddefe871
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Wed Apr 16 23:16:15 2014 +0200
+
+    hurd: Do not allow unmapping address 0
+    
+    	* sysdeps/mach/munmap.c (__munmap): Return EINVAL if `addr' is 0.
+
+diff --git a/sysdeps/mach/munmap.c b/sysdeps/mach/munmap.c
+index f8c416f..cfd5daa 100644
+--- a/sysdeps/mach/munmap.c
++++ b/sysdeps/mach/munmap.c
+@@ -27,6 +27,13 @@ int
+ __munmap (__ptr_t addr, size_t len)
+ {
+   kern_return_t err;
++
++  if (addr == 0)
++    {
++      errno = EINVAL;
++      return -1;
++    }
++
+   if (err = __vm_deallocate (__mach_task_self (),
+ 			     (vm_address_t) addr, (vm_size_t) len))
+     {

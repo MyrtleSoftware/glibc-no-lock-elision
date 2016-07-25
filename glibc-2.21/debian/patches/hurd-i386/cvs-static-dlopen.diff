@@ -1,0 +1,33 @@
+commit e0cfa51064489fdff85953bad1e0f3c42e093662
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Nov 23 20:50:24 2014 +0100
+
+    hurd: Fix dlopening libraries from static programs
+    
+    dlopening libraries from a static program would dlopen libc.so,
+    which thus needs its own initialization, done in posixland_init,
+    which was missing initializing RPCs so far.
+    
+    ChangeLog:
+    
+    2014-11-23  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+    
+    	* sysdeps/mach/hurd/i386/init-first.c (posixland_init): Call
+    	__mach_init in dlopened libc.
+
+diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
+index fc355ed..3bcffd9 100644
+--- a/sysdeps/mach/hurd/i386/init-first.c
++++ b/sysdeps/mach/hurd/i386/init-first.c
+@@ -72,6 +72,11 @@ posixland_init (int argc, char **argv, char **envp)
+       /* Set the FPU control word to the proper default value.  */
+       __setfpucw (__fpu_control);
+     }
++  else
++    {
++      /* Initialize data structures so the additional libc can do RPCs.  */
++      __mach_init ();
++    }
+ 
+   /* Save the command-line arguments.  */
+   __libc_argc = argc;

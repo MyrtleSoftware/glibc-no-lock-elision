@@ -1,0 +1,702 @@
+Description: Regen ulps for i586 instead of i686
+ This patch represents slightly looser libm-test-ulps results for
+ i386 representing the fact that i486 and i586 code generation
+ produces slightly sloppier precision than the i686 target that
+ the upstream test results were targetted at.
+Author: Adam Conrad <adconrad@debian.org>
+Reviewed-by: Carlos O'Donell <carlos@redhat.com>
+
+--- a/sysdeps/i386/fpu/libm-test-ulps
++++ b/sysdeps/i386/fpu/libm-test-ulps
+@@ -3864,6 +3864,9 @@
+ ldouble: 1
+ 
+ # ccos
++Test "Real part of: ccos (-0x2p+0 - 0x3p+0 i)":
++float: 1
++ifloat: 1
+ Test "Imaginary part of: ccos (-0x2p+0 - 0x3p+0 i)":
+ float: 1
+ ifloat: 1
+@@ -3997,6 +4000,9 @@
+ ifloat: 1
+ 
+ # cexp
++Test "Imaginary part of: cexp (+0 + 0x2.1e19ep+72 i)":
++float: 1
++ifloat: 1
+ Test "Imaginary part of: cexp (+0 + 0xf.ffffffffffff8p+1020 i)":
+ ildouble: 1
+ ldouble: 1
+@@ -5655,6 +5661,12 @@
+ Test "cos (0x1.921fb4p+0)":
+ ildouble: 1
+ ldouble: 1
++Test "cos (0x2p+0)":
++float: 1
++ifloat: 1
++Test "cos (0x4p+48)":
++float: 1
++ifloat: 1
+ 
+ # cos_downward
+ Test "cos_downward (-0x2p-16384)":
+@@ -5672,7 +5684,9 @@
+ ldouble: 1
+ Test "cos_downward (-0x4p-128)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_downward (-0x4p-16384)":
+@@ -5680,7 +5694,9 @@
+ ldouble: 1
+ Test "cos_downward (-0x8p-152)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_downward (-0x8p-16448)":
+@@ -5721,10 +5737,18 @@
+ ldouble: 1
+ Test "cos_downward (0x1.000002p+0)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
++Test "cos_downward (0x1.000006p+0)":
++float: 1
++ifloat: 1
+ Test "cos_downward (0x1.0c152382d7365p+0)":
+ double: 1
+ idouble: 1
++Test "cos_downward (0x1.0c1524p+0)":
++float: 1
++ifloat: 1
+ Test "cos_downward (0x1.921fb4p+0)":
+ ildouble: 1
+ ldouble: 1
+@@ -5744,12 +5768,16 @@
+ ldouble: 1
+ Test "cos_downward (0x1.921fb6p+0)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_downward (0x1p+0)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ Test "cos_downward (0x1p+120)":
+ ildouble: 1
+ ldouble: 1
+@@ -5760,7 +5788,9 @@
+ ldouble: 1
+ Test "cos_downward (0x2.182a44p+0)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_downward (0x2.182a4705ae6cap+0)":
+@@ -5818,7 +5848,9 @@
+ ldouble: 1
+ Test "cos_downward (0x4p-128)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_downward (0x4p-16384)":
+@@ -5832,7 +5864,9 @@
+ ldouble: 1
+ Test "cos_downward (0x8p-152)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_downward (0x8p-16448)":
+@@ -5886,6 +5920,12 @@
+ Test "cos_tonearest (0x1.921fb4p+0)":
+ ildouble: 1
+ ldouble: 1
++Test "cos_tonearest (0x2p+0)":
++float: 1
++ifloat: 1
++Test "cos_tonearest (0x4p+48)":
++float: 1
++ifloat: 1
+ 
+ # cos_towardzero
+ Test "cos_towardzero (-0x2p-16384)":
+@@ -5903,7 +5943,9 @@
+ ldouble: 1
+ Test "cos_towardzero (-0x4p-128)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_towardzero (-0x4p-16384)":
+@@ -5911,7 +5953,9 @@
+ ldouble: 1
+ Test "cos_towardzero (-0x8p-152)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_towardzero (-0x8p-16448)":
+@@ -5948,10 +5992,18 @@
+ Test "cos_towardzero (0x1.000002p+0)":
+ double: 1
+ idouble: 1
++Test "cos_towardzero (0x1.000004p+0)":
++float: 1
++ifloat: 1
+ Test "cos_towardzero (0x1.0c152382d7365p+0)":
+ double: 1
+ idouble: 1
++Test "cos_towardzero (0x1.0c1524p+0)":
++float: 1
++ifloat: 1
+ Test "cos_towardzero (0x1.921fb4p+0)":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_towardzero (0x1.921fb54442d18p+0)":
+@@ -5960,12 +6012,18 @@
+ Test "cos_towardzero (0x1.921fb54442d19p+0)":
+ double: 1
+ idouble: 1
++Test "cos_towardzero (0x1.921fb6p+0)":
++float: 1
++ifloat: 1
+ Test "cos_towardzero (0x1p+0)":
+ double: 1
+ idouble: 1
+ Test "cos_towardzero (0x1p+120)":
+ double: 1
+ idouble: 1
++Test "cos_towardzero (0x2.182a44p+0)":
++float: 1
++ifloat: 1
+ Test "cos_towardzero (0x2.182a4705ae6ccp+0)":
+ double: 1
+ idouble: 1
+@@ -6005,7 +6063,9 @@
+ ldouble: 1
+ Test "cos_towardzero (0x4p-128)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_towardzero (0x4p-16384)":
+@@ -6021,7 +6081,9 @@
+ idouble: 1
+ Test "cos_towardzero (0x8p-152)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_towardzero (0x8p-16448)":
+@@ -6045,7 +6107,9 @@
+ idouble: 1
+ Test "cos_towardzero (0xc.d4966p-4)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ Test "cos_towardzero (0xcp-4)":
+ double: 1
+ idouble: 1
+@@ -6065,7 +6129,9 @@
+ ldouble: 1
+ Test "cos_upward (0x1.000004p+0)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ Test "cos_upward (0x1.000005bc7d86dp+0)":
+ double: 1
+ idouble: 1
+@@ -6085,7 +6151,9 @@
+ idouble: 1
+ Test "cos_upward (0x1.921fb4p+0)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 2
+ ldouble: 2
+ Test "cos_upward (0x1.921fb54442d18468p+0)":
+@@ -6114,6 +6182,8 @@
+ ildouble: 1
+ ldouble: 1
+ Test "cos_upward (0x2.182a44p+0)":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_upward (0x2.182a4705ae6cap+0)":
+@@ -6132,12 +6202,16 @@
+ ldouble: 1
+ Test "cos_upward (0x2.182a48p+0)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_upward (0x2p+0)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "cos_upward (0x2p+64)":
+@@ -6184,6 +6258,9 @@
+ Test "cos_upward (0xap+0)":
+ ildouble: 1
+ ldouble: 1
++Test "cos_upward (0xc.d4966p-4)":
++float: 1
++ifloat: 1
+ Test "cos_upward (0xc.d4967p-4)":
+ double: 1
+ idouble: 1
+@@ -6488,6 +6565,9 @@
+ Test "Imaginary part of: csin (-0.75 - 89.5 i)":
+ float: 1
+ ifloat: 1
++Test "Imaginary part of: csin (-2 - 3 i)":
++float: 1
++ifloat: 1
+ Test "Real part of: csin (0.75 + 1.25 i)":
+ float: 1
+ ifloat: 1
+@@ -7129,6 +7209,8 @@
+ ildouble: 1
+ ldouble: 1
+ Test "Real part of: ctan_towardzero (0x1.921fb4p+0 + +0 i)":
++float: 2
++ifloat: 2
+ ildouble: 1
+ ldouble: 1
+ Test "Real part of: ctan_towardzero (0x1.921fb4p+0 + 0x4p-1076 i)":
+@@ -7138,13 +7220,15 @@
+ ildouble: 2
+ ldouble: 2
+ Test "Real part of: ctan_towardzero (0x1.921fb4p+0 + 0x8p-152 i)":
++float: 2
++ifloat: 2
+ ildouble: 1
+ ldouble: 1
+ Test "Imaginary part of: ctan_towardzero (0x1.921fb4p+0 + 0x8p-152 i)":
+ double: 1
+-float: 1
++float: 3
+ idouble: 1
+-ifloat: 1
++ifloat: 3
+ ildouble: 2
+ ldouble: 2
+ Test "Real part of: ctan_towardzero (0x1.921fb4p+0 + 0x8p-16448 i)":
+@@ -7232,9 +7316,9 @@
+ ldouble: 1
+ Test "Imaginary part of: ctan_towardzero (0x1.921fb6p+0 + 0x8p-152 i)":
+ double: 1
+-float: 1
++float: 3
+ idouble: 1
+-ifloat: 1
++ifloat: 3
+ ildouble: 4
+ ldouble: 4
+ Test "Real part of: ctan_towardzero (0x1.921fb6p+0 + 0x8p-16448 i)":
+@@ -7320,6 +7404,8 @@
+ ildouble: 1
+ ldouble: 1
+ Test "Real part of: ctan_upward (0x1.921fb4p+0 + +0 i)":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "Real part of: ctan_upward (0x1.921fb4p+0 + 0x4p-1076 i)":
+@@ -7329,6 +7415,8 @@
+ ildouble: 3
+ ldouble: 3
+ Test "Real part of: ctan_upward (0x1.921fb4p+0 + 0x8p-152 i)":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "Imaginary part of: ctan_upward (0x1.921fb4p+0 + 0x8p-152 i)":
+@@ -7552,10 +7640,14 @@
+ ldouble: 1
+ Test "Imaginary part of: ctanh (+0 + 0xc.90fdap-4 i)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "Imaginary part of: ctanh (+0 + 0xc.90fdbp-4 i)":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "Real part of: ctanh (-0x2p+0 - 0x3p+0 i)":
+@@ -7690,7 +7782,12 @@
+ ldouble: 1
+ Test "Imaginary part of: ctanh_downward (+0 + 0xc.90fdap-4 i)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
++Test "Imaginary part of: ctanh_downward (+0 + 0xc.90fdbp-4 i)":
++float: 1
++ifloat: 1
+ Test "Real part of: ctanh_downward (-0x2p+0 - 0x3p+0 i)":
+ float: 1
+ ifloat: 1
+@@ -7861,10 +7958,14 @@
+ ldouble: 1
+ Test "Imaginary part of: ctanh_tonearest (+0 + 0xc.90fdap-4 i)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "Imaginary part of: ctanh_tonearest (+0 + 0xc.90fdbp-4 i)":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "Real part of: ctanh_tonearest (-0x2p+0 - 0x3p+0 i)":
+@@ -7968,6 +8069,8 @@
+ 
+ # ctanh_towardzero
+ Test "Imaginary part of: ctanh_towardzero (+0 + 0x1.921fb4p+0 i)":
++float: 2
++ifloat: 2
+ ildouble: 1
+ ldouble: 1
+ Test "Imaginary part of: ctanh_towardzero (+0 + 0x1.921fb54442d1846ap+0 i)":
+@@ -8090,12 +8193,14 @@
+ ldouble: 1
+ Test "Real part of: ctanh_towardzero (0x8p-152 + 0x1.921fb4p+0 i)":
+ double: 1
+-float: 1
++float: 3
+ idouble: 1
+-ifloat: 1
++ifloat: 3
+ ildouble: 2
+ ldouble: 2
+ Test "Imaginary part of: ctanh_towardzero (0x8p-152 + 0x1.921fb4p+0 i)":
++float: 2
++ifloat: 2
+ ildouble: 1
+ ldouble: 1
+ Test "Imaginary part of: ctanh_towardzero (0x8p-152 + 0x1.921fb54442d1846ap+0 i)":
+@@ -8119,9 +8224,9 @@
+ ldouble: 1
+ Test "Real part of: ctanh_towardzero (0x8p-152 + 0x1.921fb6p+0 i)":
+ double: 1
+-float: 1
++float: 3
+ idouble: 1
+-ifloat: 1
++ifloat: 3
+ ildouble: 4
+ ldouble: 4
+ Test "Imaginary part of: ctanh_towardzero (0x8p-152 + 0x1.921fb6p+0 i)":
+@@ -8163,6 +8268,8 @@
+ 
+ # ctanh_upward
+ Test "Imaginary part of: ctanh_upward (+0 + 0x1.921fb4p+0 i)":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "Imaginary part of: ctanh_upward (+0 + 0x1.921fb54442d1846ap+0 i)":
+@@ -8343,6 +8450,8 @@
+ ildouble: 3
+ ldouble: 3
+ Test "Imaginary part of: ctanh_upward (0x8p-152 + 0x1.921fb4p+0 i)":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "Real part of: ctanh_upward (0x8p-152 + 0x1.921fb54442d1846ap+0 i)":
+@@ -9486,6 +9595,18 @@
+ ldouble: 1
+ 
+ # sin
++Test "sin (0x1p+0)":
++float: 1
++ifloat: 1
++Test "sin (0x2.1e19ep+72)":
++float: 1
++ifloat: 1
++Test "sin (0x2.553538p+0)":
++float: 1
++ifloat: 1
++Test "sin (0xc.d4966p-4)":
++float: 1
++ifloat: 1
+ Test "sin (0xf.ffffffffffff8p+1020)":
+ ildouble: 1
+ ldouble: 1
+@@ -9563,6 +9684,9 @@
+ Test "sin_downward (0x2.5535376715bap+0)":
+ double: 1
+ idouble: 1
++Test "sin_downward (0x2.553538p+0)":
++float: 1
++ifloat: 1
+ Test "sin_downward (0x2p+0)":
+ double: 1
+ idouble: 1
+@@ -9603,7 +9727,9 @@
+ ldouble: 1
+ Test "sin_downward (0x3.ec2ap+0)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "sin_downward (0x3p+0)":
+@@ -9706,10 +9832,18 @@
+ idouble: 1
+ Test "sin_downward (0xc.d4966p-4)":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
++Test "sin_downward (0xc.d4967p-4)":
++float: 1
++ifloat: 1
+ Test "sin_downward (0xe.ef3af1b5d8p-4)":
+ ildouble: 1
+ ldouble: 1
++Test "sin_downward (0xe.ef3afp-4)":
++float: 1
++ifloat: 1
+ Test "sin_downward (0xf.ffffcp+124)":
+ double: 1
+ idouble: 1
+@@ -9727,6 +9861,18 @@
+ ldouble: 1
+ 
+ # sin_tonearest
++Test "sin_tonearest (0x1p+0)":
++float: 1
++ifloat: 1
++Test "sin_tonearest (0x2.1e19ep+72)":
++float: 1
++ifloat: 1
++Test "sin_tonearest (0x2.553538p+0)":
++float: 1
++ifloat: 1
++Test "sin_tonearest (0xc.d4966p-4)":
++float: 1
++ifloat: 1
+ Test "sin_tonearest (0xf.ffffffffffff8p+1020)":
+ ildouble: 1
+ ldouble: 1
+@@ -9783,6 +9929,9 @@
+ idouble: 1
+ ildouble: 1
+ ldouble: 1
++Test "sin_towardzero (0x2.553538p+0)":
++float: 1
++ifloat: 1
+ Test "sin_towardzero (0x2p+0)":
+ double: 1
+ idouble: 1
+@@ -9805,6 +9954,9 @@
+ Test "sin_towardzero (0x3.ec2a04p+0)":
+ double: 1
+ idouble: 1
++Test "sin_towardzero (0x3.ec2ap+0)":
++float: 1
++ifloat: 1
+ Test "sin_towardzero (0x4.093388p-4)":
+ double: 1
+ idouble: 1
+@@ -9978,6 +10130,8 @@
+ ildouble: 1
+ ldouble: 1
+ Test "sin_upward (0x3.ec2ap+0)":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ Test "sin_upward (0x3p+0)":
+@@ -10116,6 +10270,15 @@
+ Test "sincos (0x1.921fb4p+0) extra output 2":
+ ildouble: 1
+ ldouble: 1
++Test "sincos (0x2.1e19ep+72) extra output 1":
++float: 1
++ifloat: 1
++Test "sincos (0x4p+48) extra output 2":
++float: 1
++ifloat: 1
++Test "sincos (0xc.d4966p-4) extra output 1":
++float: 1
++ifloat: 1
+ Test "sincos (0xf.ffffffffffff8p+1020) extra output 1":
+ ildouble: 1
+ ldouble: 1
+@@ -11838,28 +12001,38 @@
+ ldouble: 1
+ 
+ Function: "cos":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "cos_downward":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 2
+ ldouble: 2
+ 
+ Function: "cos_tonearest":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "cos_towardzero":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "cos_upward":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 2
+ ldouble: 2
+ 
+@@ -11996,17 +12169,17 @@
+ 
+ Function: Real part of "ctan_towardzero":
+ double: 3
+-float: 1
++float: 2
+ idouble: 3
+-ifloat: 1
++ifloat: 2
+ ildouble: 5
+ ldouble: 5
+ 
+ Function: Imaginary part of "ctan_towardzero":
+ double: 2
+-float: 1
++float: 3
+ idouble: 2
+-ifloat: 1
++ifloat: 3
+ ildouble: 4
+ ldouble: 4
+ 
+@@ -12076,17 +12249,17 @@
+ 
+ Function: Real part of "ctanh_towardzero":
+ double: 2
+-float: 1
++float: 3
+ idouble: 2
+-ifloat: 1
++ifloat: 3
+ ildouble: 4
+ ldouble: 4
+ 
+ Function: Imaginary part of "ctanh_towardzero":
+ double: 2
+-float: 1
++float: 2
+ idouble: 2
+-ifloat: 1
++ifloat: 2
+ ildouble: 3
+ ldouble: 3
+ 
+@@ -12283,32 +12456,44 @@
+ ldouble: 1
+ 
+ Function: "sin":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "sin_downward":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 2
+ ldouble: 2
+ 
+ Function: "sin_tonearest":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "sin_towardzero":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ 
+ Function: "sin_upward":
+ double: 1
++float: 1
+ idouble: 1
++ifloat: 1
+ ildouble: 2
+ ldouble: 2
+ 
+ Function: "sincos":
++float: 1
++ifloat: 1
+ ildouble: 1
+ ldouble: 1
+ 

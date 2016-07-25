@@ -1,0 +1,13 @@
+Index: eglibc-2.17/sysdeps/unix/sysv/linux/hppa/bits/fcntl.h
+===================================================================
+--- eglibc-2.17.orig/sysdeps/unix/sysv/linux/hppa/bits/fcntl.h	2012-11-06 12:31:45.000000000 -0500
++++ eglibc-2.17/sysdeps/unix/sysv/linux/hppa/bits/fcntl.h	2013-11-02 17:50:08.839898488 -0400
+@@ -27,7 +27,7 @@
+ #define O_NONBLOCK	00200004 /* HPUX has separate NDELAY & NONBLOCK */
+ #define __O_DSYNC	01000000
+ #define __O_RSYNC	02000000 /* HPUX only */
+-#define __O_SYNC	01000000
++#define __O_SYNC	00100000
+ #define O_SYNC		(__O_SYNC|__O_DSYNC)
+ 
+ #define O_BLKSEEK	00000100 /* HPUX only */

@@ -1,0 +1,88 @@
+Intel TSX is broken on Haswell based processors (erratum HSD136/HSW136)
+and a microcode update is available to simply disable the corresponding
+instructions.
+
+While the responsability to continue or not using TSX should be left to
+the users, a live microcode update will disable the TSX instructions
+causing already started binaries to segfault. This patch simply disable 
+Intel TSX (HLE and RTM) on processors which might receive a microcode
+update, so that it doesn't happen. We might expect newer steppings to
+fix the issue, and if it is not the case the corresponding processors 
+will be shipped with TSX already disabled.
+
+Author: Henrique de Moraes Holschuh <hmh@debian.org>
+
+diff --git a/sysdeps/x86_64/multiarch/init-arch.c b/sysdeps/x86_64/multiarch/init-arch.c
+index db74d97..6f61ae6 100644
+--- a/sysdeps/x86_64/multiarch/init-arch.c
++++ b/sysdeps/x86_64/multiarch/init-arch.c
+@@ -26,7 +26,7 @@ struct cpu_features __cpu_features attribute_hidden;
+ 
+ 
+ static void
+-get_common_indeces (unsigned int *family, unsigned int *model)
++get_common_indeces (unsigned int *family, unsigned int *model, unsigned int *stepping)
+ {
+   __cpuid (1, __cpu_features.cpuid[COMMON_CPUID_INDEX_1].eax,
+ 	   __cpu_features.cpuid[COMMON_CPUID_INDEX_1].ebx,
+@@ -36,6 +36,7 @@ get_common_indeces (unsigned int *family, unsigned int *model)
+   unsigned int eax = __cpu_features.cpuid[COMMON_CPUID_INDEX_1].eax;
+   *family = (eax >> 8) & 0x0f;
+   *model = (eax >> 4) & 0x0f;
++  *stepping = eax & 0x0f;
+ }
+ 
+ 
+@@ -47,6 +48,7 @@ __init_cpu_features (void)
+   unsigned int edx;
+   unsigned int family = 0;
+   unsigned int model = 0;
++  unsigned int stepping = 0;
+   enum cpu_features_kind kind;
+ 
+   __cpuid (0, __cpu_features.max_cpuid, ebx, ecx, edx);
+@@ -56,7 +58,7 @@ __init_cpu_features (void)
+     {
+       kind = arch_kind_intel;
+ 
+-      get_common_indeces (&family, &model);
++      get_common_indeces (&family, &model, &stepping);
+ 
+       unsigned int eax = __cpu_features.cpuid[COMMON_CPUID_INDEX_1].eax;
+       unsigned int extended_family = (eax >> 20) & 0xff;
+@@ -131,7 +133,7 @@ __init_cpu_features (void)
+     {
+       kind = arch_kind_amd;
+ 
+-      get_common_indeces (&family, &model);
++      get_common_indeces (&family, &model, &stepping);
+ 
+       ecx = __cpu_features.cpuid[COMMON_CPUID_INDEX_1].ecx;
+ 
+@@ -176,6 +178,14 @@ __init_cpu_features (void)
+ 	}
+     }
+ 
++  /* Disable Intel TSX (HLE and RTM) due to erratum HSD136/HSW136
++     on Haswell processors, to work around outdated microcode that
++     doesn't disable the broken feature by default */
++  if (kind == arch_kind_intel && family == 6 &&
++      ((model == 63 && stepping <= 2) || (model == 60 && stepping <= 3) ||
++       (model == 69 && stepping <= 1) || (model == 70 && stepping <= 1)))
++    __cpu_features.cpuid[COMMON_CPUID_INDEX_7].ebx &= ~(bit_RTM | bit_HLE);
++
+   __cpu_features.family = family;
+   __cpu_features.model = model;
+   atomic_write_barrier ();
+diff --git a/sysdeps/x86_64/multiarch/init-arch.h b/sysdeps/x86_64/multiarch/init-arch.h
+index 793707a..e2745cb 100644
+--- a/sysdeps/x86_64/multiarch/init-arch.h
++++ b/sysdeps/x86_64/multiarch/init-arch.h
+@@ -40,6 +40,7 @@
+ 
+ /* COMMON_CPUID_INDEX_7.  */
+ #define bit_RTM		(1 << 11)
++#define bit_HLE		(1 << 4)
+ #define bit_AVX2	(1 << 5)
+ 
+ /* XCR0 Feature flags.  */

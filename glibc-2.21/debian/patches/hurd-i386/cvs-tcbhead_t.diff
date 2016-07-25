@@ -1,0 +1,87 @@
+Move dtv, dtv_t, tcbhead_t declaration to per-arch file.
+Add i386 fields to TLS structure
+ 
+	* sysdeps/mach/hurd/tls.h (dtv, dtv_t, tcbhead_t): Move declarations
+	to...
+	* sysdeps/mach/hurd/i386/tls.h: ... here.
+	(tcbhead_t): Add multiple_threads, sysinfo, stack_guard,
+	pointer_guard, gscope_flag, private_futex, __private_tm, __private_ss
+	fields.
+
+diff --git a/sysdeps/mach/hurd/i386/tls.h b/sysdeps/mach/hurd/i386/tls.h
+index 845d53d..03741cd 100644
+--- a/sysdeps/mach/hurd/i386/tls.h
++++ b/sysdeps/mach/hurd/i386/tls.h
+@@ -23,6 +23,40 @@
+ /* Some things really need not be machine-dependent.  */
+ #include <sysdeps/mach/hurd/tls.h>
+ 
++
++#ifndef __ASSEMBLER__
++/* Type for the dtv.  */
++typedef union dtv
++{
++  size_t counter;
++  struct
++  {
++    void *val;
++    bool is_static;
++  } pointer;
++} dtv_t;
++
++
++/* Type of the TCB.  */
++typedef struct
++{
++  void *tcb;			/* Points to this structure.  */
++  dtv_t *dtv;			/* Vector of pointers to TLS data.  */
++  thread_t self;		/* This thread's control port.  */
++  int multiple_threads;
++  uintptr_t sysinfo;
++  uintptr_t stack_guard;
++  uintptr_t pointer_guard;
++  int gscope_flag;
++  int private_futex;
++  /* Reservation of some values for the TM ABI.  */
++  void *__private_tm[4];
++  /* GCC split stack support.  */
++  void *__private_ss;
++} tcbhead_t;
++#endif
++
++
+ /* The TCB can have any size and the memory following the address the
+    thread pointer points to is unspecified.  Allocate the TCB there.  */
+ #define TLS_TCB_AT_TP	1
+diff --git a/sysdeps/mach/hurd/tls.h b/sysdeps/mach/hurd/tls.h
+index dbe73f5..3b8b713 100644
+--- a/sysdeps/mach/hurd/tls.h
++++ b/sysdeps/mach/hurd/tls.h
+@@ -27,27 +27,6 @@
+ # include <mach.h>
+ 
+ 
+-/* Type for the dtv.  */
+-typedef union dtv
+-{
+-  size_t counter;
+-  struct
+-  {
+-    void *val;
+-    bool is_static;
+-  } pointer;
+-} dtv_t;
+-
+-
+-/* Type of the TCB.  */
+-typedef struct
+-{
+-  void *tcb;			/* Points to this structure.  */
+-  dtv_t *dtv;			/* Vector of pointers to TLS data.  */
+-  thread_t self;		/* This thread's control port.  */
+-} tcbhead_t;
+-
+-
+ /* This is the size of the initial TCB.  */
+ # define TLS_INIT_TCB_SIZE sizeof (tcbhead_t)
+ 

@@ -1,0 +1,16 @@
+#
+# Allowed failures for aarch64-linux-gnu-libc
+#
+posix/annexc
+elf/check-localplt
+math/test-fenv
+math/test-fenv-tls
+rt/tst-cpuclock2
+rt/tst-cputimer1
+rt/tst-mqueue5
+debug/tst-backtrace5
+debug/tst-backtrace6
+nptl/tst-stack4
+
+# This can be removed once bug#750834 is fixed
+math/basic-test

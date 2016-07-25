@@ -1,0 +1,117 @@
+http://sourceware.org/ml/libc-alpha/2013-02/msg00092.html
+
+From: Pino Toscano <toscano dot pino at tiscali dot it>
+To: libc-alpha at sourceware dot org
+Subject: [PATCH] handle EPROTOTYPE for socket invocations with SOCK_* flags
+Date: Wed, 6 Feb 2013 20:48:18 +0100
+
+Hi,
+
+since glibc 2.16, Hurd's bits/socket.h provides SOCK_CLOEXEC and=20
+SOCK_NONBLOCK (which accept4 handles), but __ASSUME_SOCK_CLOEXEC is not=20
+defined since socket and socketpair do not handle them, yet.
+
+The snippets of fallback code that handle failures of invocation of=20
+socket with SOCK_CLOEXEC or SOCK_NONBLOCK seem to not correctly disable=20
+have_sock_cloexec/__have_sock_cloexec if errno is EPROTOTYPE, as=20
+returned when the socket type (like "SOCK_STREAM | SOCK_CLOEXEC" for=20
+socket with no handling of flags) is unknown.
+
+The attached patch handles EPROTOTYPE as if it was EINVAL, disabling=20
+have_sock_cloexec/__have_sock_cloexec if socket does not handle SOCK_*=20
+flags.
+
+(OTOH, it seems that there are few Linux archs -- like mips*, arm, hppa,=20
+m68k -- which don't have __ASSUME_SOCK_CLOEXEC enabled in their
+kernel-features.h at all: does it mean the Linux kernel really returns=20
+EINVAL for unknown values as socket types?)
+
+Thanks,
+=2D-=20
+Pino Toscano
+
+Handle EPROTOTYPE for socket invocations with SOCK_* flags
+
+If SOCK_CLOEXEC and SOCK_NONBLOCK are defined but not __ASSUME_SOCK_CLOEXEC,
+trying to use them as socket type in invocations of socket will return
+EPROTOTYPE if socket and socketpair do not handle those flags; EPROTOTYPE is
+not considered properly, behaving as if those flags were actually supported.
+
+Checking for the EPROTOTYPE errno in addition to EINVAL handles the situation.
+
+2013-02-06  Pino Toscano  <toscano.pino@tiscali.it>
+
+	* nscd/connections.c (nscd_init) [!defined __ASSUME_SOCK_CLOEXEC]:
+	Check for EPROTOTYPE in addition to EINVAL.
+	* nscd/nscd_helper.c (open_socket) [defined SOCK_CLOEXEC]
+	[!defined __ASSUME_SOCK_CLOEXEC]: Likewise.
+	* resolv/res_send.c (reopen) [!defined __ASSUME_SOCK_CLOEXEC]: Likewise.
+	* sunrpc/clnt_udp.c (__libc_clntudp_bufcreate) [defined SOCK_NONBLOCK]
+	[!defined __ASSUME_SOCK_CLOEXEC]: Likewise.
+	* misc/syslog.c (openlog_internal) [defined SOCK_CLOEXEC]
+	[!defined __ASSUME_SOCK_CLOEXEC]: Likewise.
+
+--- a/nscd/connections.c
++++ b/nscd/connections.c
+@@ -857,7 +857,7 @@ cannot set socket to close on exec: %s;
+       sock = socket (AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
+ #ifndef __ASSUME_SOCK_CLOEXEC
+       if (have_sock_cloexec == 0)
+-	have_sock_cloexec = sock != -1 || errno != EINVAL ? 1 : -1;
++	have_sock_cloexec = sock != -1 || (errno != EINVAL && errno != EPROTOTYPE) ? 1 : -1;
+ #endif
+     }
+ #ifndef __ASSUME_SOCK_CLOEXEC
+--- a/nscd/nscd_helper.c
++++ b/nscd/nscd_helper.c
+@@ -173,7 +173,7 @@ open_socket (request_type type, const ch
+       sock = __socket (PF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
+ # ifndef __ASSUME_SOCK_CLOEXEC
+       if (__have_sock_cloexec == 0)
+-	__have_sock_cloexec = sock != -1 || errno != EINVAL ? 1 : -1;
++	__have_sock_cloexec = sock != -1 || (errno != EINVAL && errno != EPROTOTYPE) ? 1 : -1;
+ # endif
+     }
+ #endif
+--- a/resolv/res_send.c
++++ b/resolv/res_send.c
+@@ -927,7 +927,7 @@ reopen (res_state statp, int *terrno, in
+ 				if (__have_o_nonblock == 0)
+ 					__have_o_nonblock
+ 					  = (EXT(statp).nssocks[ns] == -1
+-					     && errno == EINVAL ? -1 : 1);
++					     && (errno == EINVAL || errno == EPROTOTYPE) ? -1 : 1);
+ #endif
+ 			}
+ 			if (__builtin_expect (__have_o_nonblock < 0, 0))
+@@ -945,7 +945,7 @@ reopen (res_state statp, int *terrno, in
+ 				if (__have_o_nonblock == 0)
+ 					__have_o_nonblock
+ 					  = (EXT(statp).nssocks[ns] == -1
+-					     && errno == EINVAL ? -1 : 1);
++					     && (errno == EINVAL || errno == EPROTOTYPE) ? -1 : 1);
+ #endif
+ 			}
+ 			if (__builtin_expect (__have_o_nonblock < 0, 0))
+--- a/sunrpc/clnt_udp.c
++++ b/sunrpc/clnt_udp.c
+@@ -180,7 +180,7 @@ __libc_clntudp_bufcreate (struct sockadd
+ 			     IPPROTO_UDP);
+ # ifndef __ASSUME_SOCK_CLOEXEC
+ 	  if (__have_sock_cloexec == 0)
+-	    __have_sock_cloexec = *sockp >= 0 || errno != EINVAL ? 1 : -1;
++	    __have_sock_cloexec = *sockp >= 0 || (errno != EINVAL && errno != EPROTOTYPE) ? 1 : -1;
+ # endif
+ 	}
+ #endif
+--- a/misc/syslog.c
++++ b/misc/syslog.c
+@@ -357,7 +357,7 @@ openlog_internal(const char *ident, int
+ 					if (__have_sock_cloexec == 0)
+ 						__have_sock_cloexec
+ 						  = ((LogFile != -1
+-						      || errno != EINVAL)
++						      || (errno != EINVAL && errno != EPROTOTYPE))
+ 						     ? 1 : -1);
+ 				}
+ # endif

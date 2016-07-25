@@ -1,0 +1,70 @@
+2014-06-13  Aurelien Jarno  <aurelien@aurel32.net>
+
+        [BZ #17053]
+	* resolv/res_init.c (__res_vinit): Fill in IPv4 name server
+	information using the nserv index. Only count IPv4 name servers
+	in statp->nscount.
+	* resolv/res_init.c (__res_vinit): Check for both IPv4 and IPv6
+	name servers before adding a localhost name server entry.
+	* resolv/res_send.c (__libc_res_nsend): Check for both IPv4 and
+	IPv6 name servers before ignoring the request.
+	(send_dg): Check for both IPv4 and IPv6 name servers to compute
+	time for the total operation.
+
+diff --git a/resolv/res_init.c b/resolv/res_init.c
+index ea133f8..42e16b6 100644
+--- a/resolv/res_init.c
++++ b/resolv/res_init.c
+@@ -308,9 +308,9 @@ __res_vinit(res_state statp, int preinit) {
+ 			cp++;
+ 		    if ((*cp != '\0') && (*cp != '\n')
+ 			&& __inet_aton(cp, &a)) {
+-			statp->nsaddr_list[nservall].sin_addr = a;
+-			statp->nsaddr_list[nservall].sin_family = AF_INET;
+-			statp->nsaddr_list[nservall].sin_port =
++			statp->nsaddr_list[nserv].sin_addr = a;
++			statp->nsaddr_list[nserv].sin_family = AF_INET;
++			statp->nsaddr_list[nserv].sin_port =
+ 				htons(NAMESERVER_PORT);
+ 			nserv++;
+ #ifdef _LIBC
+@@ -414,7 +414,7 @@ __res_vinit(res_state statp, int preinit) {
+ 		    continue;
+ 		}
+ 	    }
+-	    statp->nscount = nservall;
++	    statp->nscount = nserv;
+ #ifdef _LIBC
+ 	    if (nservall - nserv > 0) {
+ 		statp->_u._ext.nscount6 = nservall - nserv;
+@@ -427,7 +427,7 @@ __res_vinit(res_state statp, int preinit) {
+ #endif
+ 	    (void) fclose(fp);
+ 	}
+-	if (__builtin_expect(statp->nscount == 0, 0)) {
++	if (__builtin_expect(nservall == 0, 0)) {
+ 	    statp->nsaddr.sin_addr = __inet_makeaddr(IN_LOOPBACKNET, 1);
+ 	    statp->nsaddr.sin_family = AF_INET;
+ 	    statp->nsaddr.sin_port = htons(NAMESERVER_PORT);
+diff --git a/resolv/res_send.c b/resolv/res_send.c
+index af42b8a..82242bd 100644
+--- a/resolv/res_send.c
++++ b/resolv/res_send.c
+@@ -347,7 +347,7 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
+ {
+   int gotsomewhere, terrno, try, v_circuit, resplen, ns, n;
+ 
+-	if (statp->nscount == 0) {
++	if ((statp->nscount + EXT(statp).nscount6) == 0) {
+ 		__set_errno (ESRCH);
+ 		return (-1);
+ 	}
+@@ -1013,7 +1013,7 @@ send_dg(res_state statp,
+ 	 */
+ 	int seconds = (statp->retrans << ns);
+ 	if (ns > 0)
+-		seconds /= statp->nscount;
++		seconds /= (statp->nscount + EXT(statp).nscount6);
+ 	if (seconds <= 0)
+ 		seconds = 1;
+ 	bool single_request_reopen = (statp->options & RES_SNGLKUPREOP) != 0;

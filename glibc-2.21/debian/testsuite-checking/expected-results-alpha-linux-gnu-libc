@@ -1,0 +1,17 @@
+#
+# Allowed failures for alpha-linux-gnu-libc
+#
+posix/annexc
+elf/check-localplt
+math/test-double
+math/test-float
+math/test-snan
+rt/tst-cpuclock2
+nptl/tst-eintr1
+rt/tst-mqueue5
+nptl/tst-signal3
+rt/tst-timer
+rt/tst-timer4
+posix/tst-waitid
+misc/tst-writev
+rt/tst-cputimer1

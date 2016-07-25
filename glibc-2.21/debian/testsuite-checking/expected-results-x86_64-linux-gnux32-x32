@@ -1,0 +1,14 @@
+#
+# Allowed failures for x86_64-linux-gnux32-x32
+#
+posix/annexc
+elf/ifuncmain1staticpie
+elf/ifuncmain6pie
+elf/ifuncmain7pie
+debug/tst-backtrace6
+rt/tst-cpuclock2
+rt/tst-mqueue5
+rt/tst-timer
+posix/tst-waitid
+misc/tst-writev
+rt/tst-cputimer1

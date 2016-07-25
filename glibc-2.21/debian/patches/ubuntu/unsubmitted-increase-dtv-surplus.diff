@@ -1,0 +1,32 @@
+Description: Allow up to 32 dlopened modules to use static TLS
+Author: Carlos O'Donell <carlos@redhat.com>
+Origin: vendor, http://pkgs.fedoraproject.org/cgit/glibc.git/commit/?id=7448524498f0ef3719f85462629403cbd0bbed33
+Bug-Fedora: https://bugzilla.redhat.com/show_bug.cgi?id=1124987
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/1375555
+Last-Update: 2014-09-30
+
+Index: b/sysdeps/generic/ldsodefs.h
+===================================================================
+--- a/sysdeps/generic/ldsodefs.h
++++ b/sysdeps/generic/ldsodefs.h
+@@ -392,8 +392,18 @@
+    have to iterate beyond the first element in the slotinfo list.  */
+ #define TLS_SLOTINFO_SURPLUS (62)
+ 
+-/* Number of additional slots in the dtv allocated.  */
+-#define DTV_SURPLUS	(14)
++/* Number of additional allocated dtv slots.  This was initially
++   14, but problems with python, MESA, and X11's uses of static TLS meant
++   that most distributions were very close to this limit when they loaded
++   dynamically interpreted languages that used graphics. The simplest
++   solution was to roughly double the number of slots. The actual static
++   image space usage was relatively small, for example in MESA you
++   had only two dispatch pointers for a total of 16 bytes.  If we hit up
++   against this limit again we should start a campaign with the
++   distributions to coordinate the usage of static TLS.  Any user of this
++   resource is effectively coordinating a global resource since this
++   surplus is allocated for each thread at startup.  */
++#define DTV_SURPLUS	(32)
+ 
+   /* Initial dtv of the main thread, not allocated with normal malloc.  */
+   EXTERN void *_dl_initial_dtv;

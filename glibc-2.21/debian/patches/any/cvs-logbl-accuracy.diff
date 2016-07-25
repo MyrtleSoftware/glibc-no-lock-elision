@@ -1,0 +1,74 @@
+commit 380bd0fd2418f8988217de950f8b8ff18af0cb2b
+Author: Joseph Myers <joseph@codesourcery.com>
+Date:   Thu Feb 26 15:13:22 2015 +0000
+
+    Fix ldbl-128ibm logbl near powers of 2 (bug 18030).
+    
+    The ldbl-128ibm implementation of logbl produces incorrect results
+    when the high part of the argument is a power of 2 and the low part a
+    nonzero number with the opposite sign (and so the returned exponent
+    should be 1 less than that of the high part).  For example, logbl
+    (0x1.ffffffffffffffp1L) returns 2 but should return 1.  (This is
+    similar to (fixed) bug 16740 for frexpl, and (fixed) bug 18029 for
+    ilogbl.)  This patch adds checks for that case.
+    
+    Tested for powerpc.
+    
+    	[BZ #18030]
+    	* sysdeps/ieee754/ldbl-128ibm/s_logbl.c (__logbl): Adjust exponent
+    	of power of 2 down when low part has opposite sign.
+    	* math/libm-test.inc (logb_test_data): Add more tests.
+
+diff --git a/math/libm-test.inc b/math/libm-test.inc
+index 6045764..7acd29b 100644
+--- a/math/libm-test.inc
++++ b/math/libm-test.inc
+@@ -7868,6 +7868,11 @@ static const struct test_f_f_data logb_test_data[] =
+     TEST_f_f (logb, 0x1p-16400L, -16400, NO_INEXACT_EXCEPTION),
+     TEST_f_f (logb, 0x.00000000001p-16382L, -16426, NO_INEXACT_EXCEPTION),
+ #endif
++
++#if defined TEST_LDOUBLE && LDBL_MANT_DIG >= 57
++    TEST_f_f (logb, 0x1.ffffffffffffffp1L, 1, NO_INEXACT_EXCEPTION),
++    TEST_f_f (logb, -0x1.ffffffffffffffp1L, 1, NO_INEXACT_EXCEPTION),
++#endif
+   };
+ 
+ static void
+diff --git a/sysdeps/ieee754/ldbl-128ibm/s_logbl.c b/sysdeps/ieee754/ldbl-128ibm/s_logbl.c
+index dbd3478..22e5fc2 100644
+--- a/sysdeps/ieee754/ldbl-128ibm/s_logbl.c
++++ b/sysdeps/ieee754/ldbl-128ibm/s_logbl.c
+@@ -26,11 +26,12 @@
+ long double
+ __logbl (long double x)
+ {
+-  int64_t hx, rhx;
+-  double xhi;
++  int64_t hx, hxs, rhx;
++  double xhi, xlo;
+ 
+-  xhi = ldbl_high (x);
++  ldbl_unpack (x, &xhi, &xlo);
+   EXTRACT_WORDS64 (hx, xhi);
++  hxs = hx;
+   hx &= 0x7fffffffffffffffLL;	/* high |x| */
+   if (hx == 0)
+     return -1.0 / fabs (x);
+@@ -42,6 +43,16 @@ __logbl (long double x)
+          though it were normalized.  */
+       rhx -= __builtin_clzll (hx) - 12;
+     }
++  else if ((hx & 0x000fffffffffffffLL) == 0)
++    {
++      /* If the high part is a power of 2, and the low part is nonzero
++	 with the opposite sign, the low part affects the
++	 exponent.  */
++      int64_t lx;
++      EXTRACT_WORDS64 (lx, xlo);
++      if ((hxs ^ lx) < 0 && (lx & 0x7fffffffffffffffLL) != 0)
++	rhx--;
++    }
+   return (long double) (rhx - 1023);
+ }
+ #ifndef __logbl

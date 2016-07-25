@@ -1,0 +1,144 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix connect/sendto/sendmsg into making sure to ignore bytes beyond sockaddr length
+
+2014-03-01  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+Thanks Tanaka Akira for the report.
+
+* hurd/hurdsocket.h: New file, defines _hurd_sun_path_dupa which duplicates
+ADDR->sun_path with sockaddr LEN limitation.
+* sysdeps/mach/hurd/connect.c: Include <string.h>
+(__connect): Give result of _hurd_sun_path_dupa to name lookup.
+* sysdeps/mach/hurd/sendmsg.c: Likewise.
+* sysdeps/mach/hurd/sendto.c: Likewise.
+* sysdeps/mach/hurd/bind.c: Call _hurd_sun_path_dupa instead of implementing it
+by hand.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ hurd/hurdsocket.h           |   22 ++++++++++++++++++++++
+ sysdeps/mach/hurd/bind.c    |    8 +++-----
+ sysdeps/mach/hurd/connect.c |    4 +++-
+ sysdeps/mach/hurd/sendmsg.c |    4 +++-
+ sysdeps/mach/hurd/sendto.c  |    4 +++-
+ 5 files changed, 34 insertions(+), 8 deletions(-)
+
+--- /dev/null
++++ b/hurd/hurdsocket.h
+@@ -0,0 +1,22 @@
++/* Hurd-specific socket functions
++   Copyright (C) 2013 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <string.h>
++
++#define _hurd_sun_path_dupa(__addr, __len) \
++  strndupa ((__addr)->sun_path, (__len) - offsetof (struct sockaddr_un, sun_path))
+--- a/sysdeps/mach/hurd/bind.c
++++ b/sysdeps/mach/hurd/bind.c
+@@ -25,7 +25,7 @@
+ #include <stddef.h>
+ #include <hurd/ifsock.h>
+ #include <sys/un.h>
+-#include <string.h>
++#include "hurd/hurdsocket.h"
+ 
+ /* Give the socket FD the local address ADDR (which is LEN bytes long).  */
+ int
+@@ -37,13 +37,11 @@ __bind  (int fd, __CONST_SOCKADDR_ARG ad
+ 
+   if (addr->sun_family == AF_LOCAL)
+     {
++      char *name = _hurd_sun_path_dupa (addr, len);
+       /* For the local domain, we must create a node in the filesystem
+ 	 using the ifsock translator and then fetch the address from it.  */
+       file_t dir, node;
+-      char name[len - offsetof (struct sockaddr_un, sun_path) + 1], *n;
+-
+-      strncpy (name, addr->sun_path, sizeof name - 1);
+-      name[sizeof name - 1] = '\0'; /* Make sure */
++      char *n;
+ 
+       dir = __file_name_split (name, &n);
+       if (dir == MACH_PORT_NULL)
+--- a/sysdeps/mach/hurd/connect.c
++++ b/sysdeps/mach/hurd/connect.c
+@@ -22,6 +22,7 @@
+ #include <hurd/socket.h>
+ #include <sys/un.h>
+ #include <hurd/ifsock.h>
++#include "hurd/hurdsocket.h"
+ 
+ /* Open a connection on socket FD to peer at ADDR (which LEN bytes long).
+    For connectionless socket types, just set the default address to send to
+@@ -36,9 +37,10 @@ __connect (int fd, __CONST_SOCKADDR_ARG
+ 
+   if (addr->sun_family == AF_LOCAL)
+     {
++      char *name = _hurd_sun_path_dupa (addr, len);
+       /* For the local domain, we must look up the name as a file and talk
+ 	 to it with the ifsock protocol.  */
+-      file_t file = __file_name_lookup (addr->sun_path, 0, 0);
++      file_t file = __file_name_lookup (name, 0, 0);
+       if (file == MACH_PORT_NULL)
+ 	return -1;
+       err = __ifsock_getsockaddr (file, &aport);
+--- a/sysdeps/mach/hurd/sendmsg.c
++++ b/sysdeps/mach/hurd/sendmsg.c
+@@ -24,6 +24,7 @@
+ #include <hurd/fd.h>
+ #include <hurd/ifsock.h>
+ #include <hurd/socket.h>
++#include "hurd/hurdsocket.h"
+ 
+ /* Send a message described MESSAGE on socket FD.
+    Returns the number of bytes sent, or -1 for errors.  */
+@@ -150,9 +151,10 @@ __libc_sendmsg (int fd, const struct msg
+     {
+       if (addr->sun_family == AF_LOCAL)
+ 	{
++	  char *name = _hurd_sun_path_dupa (addr, addr_len);
+ 	  /* For the local domain, we must look up the name as a file
+ 	     and talk to it with the ifsock protocol.  */
+-	  file_t file = __file_name_lookup (addr->sun_path, 0, 0);
++	  file_t file = __file_name_lookup (name, 0, 0);
+ 	  if (file == MACH_PORT_NULL)
+ 	    {
+ 	      err = errno;
+--- a/sysdeps/mach/hurd/sendto.c
++++ b/sysdeps/mach/hurd/sendto.c
+@@ -22,6 +22,7 @@
+ #include <hurd/fd.h>
+ #include <hurd/ifsock.h>
+ #include <hurd/socket.h>
++#include "hurd/hurdsocket.h"
+ 
+ /* Send N bytes of BUF on socket FD to peer at address ADDR (which is
+    ADDR_LEN bytes long).  Returns the number sent, or -1 for errors.  */
+@@ -47,9 +48,10 @@ __sendto (int fd,
+ 
+       if (addr->sun_family == AF_LOCAL)
+ 	{
++	  char *name = _hurd_sun_path_dupa (addr, addr_len);
+ 	  /* For the local domain, we must look up the name as a file and talk
+ 	     to it with the ifsock protocol.  */
+-	  file_t file = __file_name_lookup (addr->sun_path, 0, 0);
++	  file_t file = __file_name_lookup (name, 0, 0);
+ 	  if (file == MACH_PORT_NULL)
+ 	    return errno;
+ 	  err_port = __ifsock_getsockaddr (file, aport);

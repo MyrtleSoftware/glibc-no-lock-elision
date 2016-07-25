@@ -1,0 +1,497 @@
+commit 3410beff94994edf971dd634c56156d70c7cf215
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Feb 28 21:41:47 2015 +0100
+
+    Allow libpthread.so to dynamically loaded from a dlopened library
+    
+    * pthread/pt-internal.h: Include <ldsodefs.h>
+    (_dl_allocate_tls, _dl_deallocate_tls): Remove declarations.
+    * sysdeps/mach/hurd/pt-sysdep.c (init_routine): Rename into _init_routine,
+    add `stack' parameter, return if __pthread_threads is already initialized,
+    pass stack address to __pthread_create_internal if any.
+    (init_routine): New function, calls init_routine with 0
+    (dynamic_init_routine): New constructor function, calls init_routine with
+    __libc_stack_end.
+
+Index: glibc-2.19/libpthread/pthread/pt-internal.h
+===================================================================
+--- glibc-2.19.orig/libpthread/pthread/pt-internal.h
++++ glibc-2.19/libpthread/pthread/pt-internal.h
+@@ -35,6 +35,10 @@
+ #include <pt-sysdep.h>
+ #include <pt-machdep.h>
+ 
++#ifdef IS_IN_libpthread
++# include <ldsodefs.h>
++#endif
++
+ /* Thread state.  */
+ enum pthread_state
+ {
+@@ -323,17 +327,4 @@ const struct __pthread_rwlockattr __pthr
+ /* Default condition attributes.  */
+ const struct __pthread_condattr __pthread_default_condattr;
+ 
+-
+-#ifdef ENABLE_TLS
+-
+-/* From glibc.  */
+-
+-/* Dynamic linker TLS allocation.  */
+-extern void *_dl_allocate_tls(void *);
+-
+-/* Dynamic linker TLS deallocation.  */
+-extern void _dl_deallocate_tls(void *, int);
+-
+-#endif /* ENABLE_TLS */
+-
+ #endif /* pt-internal.h */
+Index: glibc-2.19/libpthread/sysdeps/mach/hurd/pt-sysdep.c
+===================================================================
+--- glibc-2.19.orig/libpthread/sysdeps/mach/hurd/pt-sysdep.c
++++ glibc-2.19/libpthread/sysdeps/mach/hurd/pt-sysdep.c
+@@ -39,16 +39,31 @@ void *(*_cthread_init_routine)(void) = &
+    should return a new stack pointer for the main thread.  The caller
+    will switch to this new stack before doing anything serious.  */
+ static void *
+-init_routine (void)
++_init_routine (void *stack)
+ {
+   struct __pthread *thread;
+   int err;
++  pthread_attr_t attr, *attrp = 0;
++
++  if (__pthread_threads)
++    /* Already initialized */
++    return 0;
+ 
+   /* Initialize the library.  */
+   __pthread_init ();
+ 
++  if (stack)
++    {
++      /* We are getting initialized due to dlopening a library using libpthread
++	 while the main program was not linked against libpthread.  */
++      /* Avoid allocating another stack */
++      attrp = &attr;
++      pthread_attr_init(attrp);
++      pthread_attr_setstack(attrp, __libc_stack_end, __vm_page_size);
++    }
++
+   /* Create the pthread structure for the main thread (i.e. us).  */
+-  err = __pthread_create_internal (&thread, 0, 0, 0);
++  err = __pthread_create_internal (&thread, attrp, 0, 0);
+   assert_perror (err);
+ 
+   /* XXX The caller copies the command line arguments and the environment
+@@ -68,3 +83,16 @@ init_routine (void)
+ 
+   return thread->mcontext.sp;
+ }
++
++static void *
++init_routine (void)
++{
++  return _init_routine (0);
++}
++
++#ifdef SHARED
++__attribute__ ((constructor)) static void dynamic_init_routine(void)
++{
++  _init_routine (__libc_stack_end);
++}
++#endif
+
+commit 8dc97a5e7ca62b98aba02883724fd58a91f9a32e
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Mar 1 20:23:52 2015 +0100
+
+    Forward lockfile calls from libc to dynamically loaded libpthread
+    
+    * forward.c: (__libc_pthread_functions_init): Add variable
+    (FORWARD2): Use __libc_pthread_functions_init instead of testing
+    __libc_pthread_functions.ptr_##name value.
+    (FORWARD_NORETURN): Add macro.
+    (pthread_exit): Use FORWARD_NORETURN instead of FORWARD2.
+    * libc_pthread_init.c (__libc_pthread_init): Set
+    __libc_pthread_functions_init to 1.
+    * pthread/pthread-functions.h (__pthread_once, __pthread_rwlock_rdlock,
+    __pthread_rwlock_wrlock, __pthread_rwlock_unlock, __pthread_key_create,
+    __pthread_getspecific, __pthread_setspecific, _cthreads_flockfile,
+    _cthreads_funlockfile, _cthreads_ftrylockfile): Add prototypes.
+    (pthread_functions): Add ptr_pthread_once, ptr_pthread_rwlock_rdlock,
+    ptr_pthread_rwlock_wrlock, ptr_pthread_rwlock_unlock,
+    ptr_pthread_key_create, ptr_pthread_getspecific, ptr_pthread_setspecific,
+    ptr__IO_flockfile, ptr__IO_funlockfile, ptr__IO_ftrylockfile.
+    (__libc_pthread_functions_init): Add variable declaration.
+    (PTHFCT_CALL): Add macro.
+    * pthread/pt-initialize.c (pthread_functions): Initialize ptr_pthread_once,
+    ptr_pthread_rwlock_rdlock, ptr_pthread_rwlock_wrlock, pthread_rwlock_unlock,
+    ptr_ptr_pthread_key_create, pthread_getspecific, ptr_pthread_setspecific,
+    ptr_ptr__IO_flockfile, _IO_funlockfile, ptr__IO_ftrylockfile.
+    * sysdeps/generic/pt-once.c (pthread_once): Rename to __pthread_once
+    (pthread_once): Add strong alias.
+    * sysdeps/generic/pt-rwlock-rdlock.c (pthread_rwlock_rdlock): Rename to
+    __pthread_rwlock_rdlock
+    (pthread_rwlock_rdlock): Add strong alias.
+    * sysdeps/generic/pt-rwlock-wrlock.c (pthread_rwlock_wrlock): Rename to
+    __pthread_rwlock_wrlock
+    (pthread_rwlock_wrlock): Add strong alias.
+    * sysdeps/generic/pt-rwlock-unlock.c (pthread_rwlock_unlock): Rename to
+    __pthread_rwlock_unlock
+    (pthread_rwlock_unlock): Add strong alias.
+    * sysdeps/generic/pt-getspecific.c (pthread_getspecific): Rename to
+    __pthread_getspecific
+    (pthread_getspecific): Add strong alias.
+    * sysdeps/generic/pt-setspecific.c (pthread_setspecific): Rename to
+    __pthread_setspecific
+    (pthread_setspecific): Add strong alias.
+    * sysdeps/pthread/flockfile.c: Add file.
+    * sysdeps/pthread/ftrylockfile.c: Add file.
+    * sysdeps/pthread/funlockfile.c: Add file.
+
+diff --git a/libpthread/forward.c b/libpthread/forward.c
+index 9e940fb..994106e 100644
+--- a/libpthread/forward.c
++++ b/libpthread/forward.c
+@@ -25,16 +25,28 @@
+ 
+ /* Pointers to the libc functions.  */
+ struct pthread_functions __libc_pthread_functions attribute_hidden;
++int __libc_pthread_functions_init attribute_hidden;
+ 
+ 
+ # define FORWARD2(name, rettype, decl, params, defaction) \
+ rettype									      \
+ name decl								      \
+ {									      \
+-  if (__libc_pthread_functions.ptr_##name == NULL)			      \
++  if (!__libc_pthread_functions_init)			      \
+     defaction;								      \
+ 									      \
+-  return __libc_pthread_functions.ptr_##name params;			      \
++  return PTHFCT_CALL (ptr_##name, params);			      \
++}
++
++/* Same as FORWARD2, only without return.  */
++# define FORWARD_NORETURN(name, rettype, decl, params, defaction) \
++rettype									      \
++name decl								      \
++{									      \
++  if (!__libc_pthread_functions_init)			      \
++    defaction;								      \
++									      \
++  PTHFCT_CALL (ptr_##name, params);			      \
+ }
+ 
+ # define FORWARD(name, decl, params, defretval) \
+@@ -94,7 +106,7 @@ FORWARD (pthread_equal, (pthread_t thread1, pthread_t thread2),
+ 
+ 
+ /* Use an alias to avoid warning, as pthread_exit is declared noreturn.  */
+-FORWARD2 (pthread_exit, void, (void *retval), (retval), exit (EXIT_SUCCESS))
++FORWARD_NORETURN (pthread_exit, void, (void *retval), (retval), exit (EXIT_SUCCESS))
+ 
+ 
+ FORWARD (pthread_getschedparam,
+diff --git a/libpthread/libc_pthread_init.c b/libpthread/libc_pthread_init.c
+index e6c8b9f..bc808cb 100644
+--- a/libpthread/libc_pthread_init.c
++++ b/libpthread/libc_pthread_init.c
+@@ -30,5 +30,6 @@ __libc_pthread_init (functions)
+      can be done with one memory access instead of two.  */
+   memcpy (&__libc_pthread_functions, functions,
+ 	  sizeof (__libc_pthread_functions));
++  __libc_pthread_functions_init = 1;
+ #endif
+ }
+diff --git a/libpthread/pthread/pt-initialize.c b/libpthread/pthread/pt-initialize.c
+index a99cc59..aa3cf82 100644
+--- a/libpthread/pthread/pt-initialize.c
++++ b/libpthread/pthread/pt-initialize.c
+@@ -64,6 +64,16 @@ static const struct pthread_functions pthread_functions =
+     .ptr_pthread_setcancelstate = __pthread_setcancelstate,
+     .ptr_pthread_setcanceltype = __pthread_setcanceltype,
+     .ptr___pthread_get_cleanup_stack = __pthread_get_cleanup_stack,
++    .ptr_pthread_once = __pthread_once,
++    .ptr_pthread_rwlock_rdlock = __pthread_rwlock_rdlock,
++    .ptr_pthread_rwlock_wrlock = __pthread_rwlock_wrlock,
++    .ptr_pthread_rwlock_unlock = __pthread_rwlock_unlock,
++    .ptr_pthread_key_create = __pthread_key_create,
++    .ptr_pthread_getspecific = __pthread_getspecific,
++    .ptr_pthread_setspecific = __pthread_setspecific,
++    .ptr__IO_flockfile = _cthreads_flockfile,
++    .ptr__IO_funlockfile = _cthreads_funlockfile,
++    .ptr__IO_ftrylockfile = _cthreads_ftrylockfile,
+   };
+ #endif /* IS_IN_libpthread */
+ 
+diff --git a/libpthread/pthread/pthread-functions.h b/libpthread/pthread/pthread-functions.h
+index c0ba858..d236822 100644
+--- a/libpthread/pthread/pthread-functions.h
++++ b/libpthread/pthread/pthread-functions.h
+@@ -61,6 +61,17 @@ pthread_t __pthread_self (void);
+ int __pthread_setcancelstate (int, int *);
+ int __pthread_setcanceltype (int, int *);
+ struct __pthread_cancelation_handler **__pthread_get_cleanup_stack (void);
++int __pthread_once (pthread_once_t *, void (*) (void));
++int __pthread_rwlock_rdlock (pthread_rwlock_t *);
++int __pthread_rwlock_wrlock (pthread_rwlock_t *);
++int __pthread_rwlock_unlock (pthread_rwlock_t *);
++int __pthread_key_create (pthread_key_t *, void (*) (void *));
++void *__pthread_getspecific (pthread_key_t);
++int __pthread_setspecific (pthread_key_t, const void *);
++
++void _cthreads_flockfile (FILE *);
++void _cthreads_funlockfile (FILE *);
++int _cthreads_ftrylockfile (FILE *);
+ 
+ /* Data type shared with libc.  The libc uses it to pass on calls to
+    the thread functions.  Wine pokes directly into this structure,
+@@ -106,11 +117,25 @@ struct pthread_functions
+   int (*ptr_pthread_setcancelstate) (int, int *);
+   int (*ptr_pthread_setcanceltype) (int, int *);
+   struct __pthread_cancelation_handler **(*ptr___pthread_get_cleanup_stack) (void);
++  int (*ptr_pthread_once) (pthread_once_t *, void (*) (void));
++  int (*ptr_pthread_rwlock_rdlock) (pthread_rwlock_t *);
++  int (*ptr_pthread_rwlock_wrlock) (pthread_rwlock_t *);
++  int (*ptr_pthread_rwlock_unlock) (pthread_rwlock_t *);
++  int (*ptr_pthread_key_create) (pthread_key_t *, void (*) (void *));
++  void *(*ptr_pthread_getspecific) (pthread_key_t);
++  int (*ptr_pthread_setspecific) (pthread_key_t, const void *);
++  void (*ptr__IO_flockfile) (FILE *);
++  void (*ptr__IO_funlockfile) (FILE *);
++  int (*ptr__IO_ftrylockfile) (FILE *);
+ };
+ 
+ /* Variable in libc.so.  */
+ extern struct pthread_functions __libc_pthread_functions attribute_hidden;
++extern int __libc_pthread_functions_init attribute_hidden;
+ 
+ void __libc_pthread_init (const struct pthread_functions *functions);
+ 
++# define PTHFCT_CALL(fct, params) \
++    __libc_pthread_functions.fct params
++
+ #endif	/* pthread-functions.h */
+diff --git a/libpthread/sysdeps/generic/pt-once.c b/libpthread/sysdeps/generic/pt-once.c
+index 5be5e48..d9f4733 100644
+--- a/libpthread/sysdeps/generic/pt-once.c
++++ b/libpthread/sysdeps/generic/pt-once.c
+@@ -23,7 +23,7 @@
+ #include <pt-internal.h>
+ 
+ int
+-pthread_once (pthread_once_t *once_control, void (*init_routine) (void))
++__pthread_once (pthread_once_t *once_control, void (*init_routine) (void))
+ {
+   if (once_control->run == 0)
+     {
+@@ -41,3 +41,4 @@ pthread_once (pthread_once_t *once_control, void (*init_routine) (void))
+ 
+   return 0;
+ }
++strong_alias (__pthread_once, pthread_once);
+diff --git a/libpthread/sysdeps/generic/pt-rwlock-rdlock.c b/libpthread/sysdeps/generic/pt-rwlock-rdlock.c
+index 480cf48..6eca601 100644
+--- a/libpthread/sysdeps/generic/pt-rwlock-rdlock.c
++++ b/libpthread/sysdeps/generic/pt-rwlock-rdlock.c
+@@ -26,7 +26,8 @@ extern int __pthread_rwlock_timedrdlock_internal (struct __pthread_rwlock *rwloc
+ 
+ /* Acquire RWLOCK for reading, block if we can't get it.  */
+ int
+-pthread_rwlock_rdlock (struct __pthread_rwlock *rwlock)
++__pthread_rwlock_rdlock (struct __pthread_rwlock *rwlock)
+ {
+   return __pthread_rwlock_timedrdlock_internal (rwlock, 0);
+ }
++strong_alias (__pthread_rwlock_rdlock, pthread_rwlock_rdlock);
+diff --git a/libpthread/sysdeps/generic/pt-rwlock-unlock.c b/libpthread/sysdeps/generic/pt-rwlock-unlock.c
+index dcf1d3e..b45ad23 100644
+--- a/libpthread/sysdeps/generic/pt-rwlock-unlock.c
++++ b/libpthread/sysdeps/generic/pt-rwlock-unlock.c
+@@ -25,7 +25,7 @@
+    are no threads waiting for a write lock, rescheduling the reader
+    threads.  */
+ int
+-pthread_rwlock_unlock (pthread_rwlock_t *rwlock)
++__pthread_rwlock_unlock (pthread_rwlock_t *rwlock)
+ {
+   struct __pthread *wakeup;
+   
+@@ -96,3 +96,4 @@ pthread_rwlock_unlock (pthread_rwlock_t *rwlock)
+   __pthread_spin_unlock (&rwlock->__lock);
+   return 0;
+ }
++strong_alias (__pthread_rwlock_unlock, pthread_rwlock_unlock);
+diff --git a/libpthread/sysdeps/generic/pt-rwlock-wrlock.c b/libpthread/sysdeps/generic/pt-rwlock-wrlock.c
+index be85b90..68254d1 100644
+--- a/libpthread/sysdeps/generic/pt-rwlock-wrlock.c
++++ b/libpthread/sysdeps/generic/pt-rwlock-wrlock.c
+@@ -28,7 +28,8 @@ extern int __pthread_rwlock_timedwrlock_internal (struct __pthread_rwlock *rwloc
+ 
+ /* Acquire RWLOCK for writing.  */
+ int
+-pthread_rwlock_wrlock (struct __pthread_rwlock *rwlock)
++__pthread_rwlock_wrlock (struct __pthread_rwlock *rwlock)
+ {
+   return __pthread_rwlock_timedwrlock_internal (rwlock, 0);
+ }
++strong_alias (__pthread_rwlock_wrlock, pthread_rwlock_wrlock);
+diff --git a/libpthread/sysdeps/hurd/pt-getspecific.c b/libpthread/sysdeps/hurd/pt-getspecific.c
+index 71ec63c..8a01470 100644
+--- a/libpthread/sysdeps/hurd/pt-getspecific.c
++++ b/libpthread/sysdeps/hurd/pt-getspecific.c
+@@ -23,7 +23,7 @@
+ #include <pt-internal.h>
+ 
+ void *
+-pthread_getspecific (pthread_key_t key)
++__pthread_getspecific (pthread_key_t key)
+ {
+   struct __pthread *self;
+ 
+@@ -37,3 +37,4 @@ pthread_getspecific (pthread_key_t key)
+ 
+   return hurd_ihash_find (self->thread_specifics, key);
+ }
++strong_alias (__pthread_getspecific, pthread_getspecific);
+diff --git a/libpthread/sysdeps/hurd/pt-setspecific.c b/libpthread/sysdeps/hurd/pt-setspecific.c
+index d0b7302..b3976cc 100644
+--- a/libpthread/sysdeps/hurd/pt-setspecific.c
++++ b/libpthread/sysdeps/hurd/pt-setspecific.c
+@@ -23,7 +23,7 @@
+ #include <pt-internal.h>
+ 
+ int
+-pthread_setspecific (pthread_key_t key, const void *value)
++__pthread_setspecific (pthread_key_t key, const void *value)
+ {
+   error_t err;
+   struct __pthread *self = _pthread_self ();
+@@ -45,3 +45,4 @@ pthread_setspecific (pthread_key_t key, const void *value)
+       
+   return 0;
+ }
++strong_alias (__pthread_setspecific, pthread_setspecific);
+diff --git a/libpthread/sysdeps/pthread/flockfile.c b/libpthread/sysdeps/pthread/flockfile.c
+new file mode 100644
+index 0000000..bddd46c
+--- /dev/null
++++ b/libpthread/sysdeps/pthread/flockfile.c
+@@ -0,0 +1,33 @@
++/* Copyright (C) 2002-2014 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <libio.h>
++#include <bits/libc-lock.h>
++
++
++void
++__flockfile (stream)
++     FILE *stream;
++{
++#ifdef SHARED
++  __libc_ptf_call (_IO_flockfile, (stream), 0);
++#endif
++}
++weak_alias (__flockfile, _IO_flockfile)
++weak_alias (__flockfile, flockfile)
+diff --git a/libpthread/sysdeps/pthread/ftrylockfile.c b/libpthread/sysdeps/pthread/ftrylockfile.c
+new file mode 100644
+index 0000000..7aafbe9
+--- /dev/null
++++ b/libpthread/sysdeps/pthread/ftrylockfile.c
+@@ -0,0 +1,36 @@
++/* Copyright (C) 2002-2014 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <pthread.h>
++#include <stdio.h>
++#include <bits/stdio-lock.h>
++
++
++int
++__ftrylockfile (stream)
++     FILE *stream;
++{
++#ifdef SHARED
++  return __libc_ptf_call (_IO_ftrylockfile, (stream), 0);
++#else
++  return 0;
++#endif
++}
++weak_alias (__ftrylockfile, _IO_ftrylockfile)
++weak_alias (__ftrylockfile, ftrylockfile)
+diff --git a/libpthread/sysdeps/pthread/funlockfile.c b/libpthread/sysdeps/pthread/funlockfile.c
+new file mode 100644
+index 0000000..59fa40e
+--- /dev/null
++++ b/libpthread/sysdeps/pthread/funlockfile.c
+@@ -0,0 +1,34 @@
++/* Copyright (C) 2002-2014 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <pthread.h>
++#include <stdio.h>
++#include <libio.h>
++#include <bits/stdio-lock.h>
++
++
++void
++__funlockfile (stream)
++     FILE *stream;
++{
++#ifdef SHARED
++  __libc_ptf_call (_IO_funlockfile, (stream), 0);
++#endif
++}
++weak_alias (__funlockfile, _IO_funlockfile)
++weak_alias (__funlockfile, funlockfile)

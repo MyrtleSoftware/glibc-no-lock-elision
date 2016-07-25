@@ -1,0 +1,11 @@
+#
+# Allowed failures for i686-linux-gnu-i686
+#
+posix/annexc
+debug/tst-backtrace6
+rt/tst-cpuclock2
+rt/tst-mqueue5
+rt/tst-timer
+posix/tst-waitid
+rt/tst-cputimer1
+nptl/tst-cleanupx4

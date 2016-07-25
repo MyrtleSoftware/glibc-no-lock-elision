@@ -1,0 +1,19 @@
+the R10000 needs an LL/SC Workaround. If not applied all R10k before
+rev 3.0 misbehave on atomic ops and rev 2.6 and lower (e.g. SGI IP28)
+die after very few seconds with a deadlock due to even more erratas.
+
+---
+ sysdeps/mips/bits/atomic.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/sysdeps/mips/bits/atomic.h
++++ b/sysdeps/mips/bits/atomic.h
+@@ -68,7 +68,7 @@
+       is predicted not taken.  */
+ 
+ 
+-#ifdef _MIPS_ARCH_R10000
++#if 1
+ #define R10K_BEQZ_INSN "beqzl"
+ #else
+ #define R10K_BEQZ_INSN "beqz"

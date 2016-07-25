@@ -1,0 +1,13 @@
+#
+# Allowed failures for sparc-linux-gnu-libc
+#
+posix/annexc
+elf/check-localplt
+debug/tst-backtrace2
+debug/tst-backtrace3
+debug/tst-backtrace4
+debug/tst-backtrace5
+debug/tst-backtrace6
+rt/tst-cpuclock2
+posix/tst-waitid
+rt/tst-cputimer1

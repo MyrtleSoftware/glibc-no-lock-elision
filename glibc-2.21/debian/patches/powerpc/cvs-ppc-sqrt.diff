@@ -1,0 +1,95 @@
+commit e8bd5286c68bc35be3b41e94c15c4387dcb3bec9
+Author: Joseph Myers <joseph@codesourcery.com>
+Date:   Thu Feb 12 23:05:37 2015 +0000
+
+    Fix powerpc software sqrt (bug 17964).
+    
+    As Adhemerval noted in
+    <https://sourceware.org/ml/libc-alpha/2015-01/msg00451.html>, the
+    powerpc sqrt implementation for when _ARCH_PPCSQ is not defined is
+    inaccurate in some cases.
+    
+    The problem is that this code relies on fused multiply-add, and relies
+    on the compiler contracting a * b + c to get a fused operation.  But
+    sysdeps/ieee754/dbl-64/Makefile disables contraction for e_sqrt.c,
+    because the implementation in that directory relies on *not* having
+    contracted operations.
+    
+    While it would be possible to arrange makefiles so that an earlier
+    sysdeps directory can disable the setting in
+    sysdeps/ieee754/dbl-64/Makefile, it seems a lot cleaner to make the
+    dependence on fused operations explicit in the .c file.  GCC 4.6
+    introduced support for __builtin_fma on powerpc and other
+    architectures with such instructions, so we can rely on that; this
+    patch duly makes the code use __builtin_fma for all such fused
+    operations.
+    
+    Tested for powerpc32 (hard float).
+    
+    2015-02-12  Joseph Myers  <joseph@codesourcery.com>
+    
+    	[BZ #17964]
+    	* sysdeps/powerpc/fpu/e_sqrt.c (__slow_ieee754_sqrt): Use
+    	__builtin_fma instead of relying on contraction of a * b + c.
+
+diff --git a/sysdeps/powerpc/fpu/e_sqrt.c b/sysdeps/powerpc/fpu/e_sqrt.c
+index 0934faa..9b55ef8 100644
+--- a/sysdeps/powerpc/fpu/e_sqrt.c
++++ b/sysdeps/powerpc/fpu/e_sqrt.c
+@@ -99,38 +99,41 @@ __slow_ieee754_sqrt (double x)
+ 	  /* Here we have three Newton-Raphson iterations each of a
+ 	     division and a square root and the remainder of the
+ 	     argument reduction, all interleaved.   */
+-	  sd = -(sg * sg - sx);
++	  sd = -__builtin_fma (sg, sg, -sx);
+ 	  fsgi = (xi0 + 0x40000000) >> 1 & 0x7ff00000;
+ 	  sy2 = sy + sy;
+-	  sg = sy * sd + sg;	/* 16-bit approximation to sqrt(sx). */
++	  sg = __builtin_fma (sy, sd, sg);	/* 16-bit approximation to
++						   sqrt(sx). */
+ 
+ 	  /* schedule the INSERT_WORDS (fsg, fsgi, 0) to get separation
+ 	     between the store and the load.  */
+ 	  INSERT_WORDS (fsg, fsgi, 0);
+ 	  iw_u.parts.msw = fsgi;
+ 	  iw_u.parts.lsw = (0);
+-	  e = -(sy * sg - almost_half);
+-	  sd = -(sg * sg - sx);
++	  e = -__builtin_fma (sy, sg, -almost_half);
++	  sd = -__builtin_fma (sg, sg, -sx);
+ 	  if ((xi0 & 0x7ff00000) == 0)
+ 	    goto denorm;
+-	  sy = sy + e * sy2;
+-	  sg = sg + sy * sd;	/* 32-bit approximation to sqrt(sx).  */
++	  sy = __builtin_fma (e, sy2, sy);
++	  sg = __builtin_fma (sy, sd, sg);	/* 32-bit approximation to
++						   sqrt(sx).  */
+ 	  sy2 = sy + sy;
+ 	  /* complete the INSERT_WORDS (fsg, fsgi, 0) operation.  */
+ 	  fsg = iw_u.value;
+-	  e = -(sy * sg - almost_half);
+-	  sd = -(sg * sg - sx);
+-	  sy = sy + e * sy2;
++	  e = -__builtin_fma (sy, sg, -almost_half);
++	  sd = -__builtin_fma (sg, sg, -sx);
++	  sy = __builtin_fma (e, sy2, sy);
+ 	  shx = sx * fsg;
+-	  sg = sg + sy * sd;	/* 64-bit approximation to sqrt(sx),
+-				   but perhaps rounded incorrectly.  */
++	  sg = __builtin_fma (sy, sd, sg);	/* 64-bit approximation to
++						   sqrt(sx), but perhaps
++						   rounded incorrectly.  */
+ 	  sy2 = sy + sy;
+ 	  g = sg * fsg;
+-	  e = -(sy * sg - almost_half);
+-	  d = -(g * sg - shx);
+-	  sy = sy + e * sy2;
++	  e = -__builtin_fma (sy, sg, -almost_half);
++	  d = -__builtin_fma (g, sg, -shx);
++	  sy = __builtin_fma (e, sy2, sy);
+ 	  fesetenv_register (fe);
+-	  return g + sy * d;
++	  return __builtin_fma (sy, d, g);
+ 	denorm:
+ 	  /* For denormalised numbers, we normalise, calculate the
+ 	     square root, and return an adjusted result.  */

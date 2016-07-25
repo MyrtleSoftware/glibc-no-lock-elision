@@ -1,0 +1,32 @@
+#
+# Allowed failures for hppa-linux-gnu-libc
+#
+posix/annexc
+elf/check-execstack
+elf/check-localplt
+elf/check-textrel
+elf/tst-addr1
+elf/tst-audit2
+debug/tst-backtrace2
+nptl/tst-cancelx20
+nptl/tst-cancelx21
+nptl/tst-cancelx4
+nptl/tst-cancelx5
+nptl/tst-cleanupx4
+rt/tst-cpuclock2
+rt/tst-cputimer1
+rt/tst-cputimer2
+rt/tst-cputimer3
+posix/tst-getcpu
+debug/tst-longjmp_chk
+rt/tst-mqueue3
+rt/tst-mqueue5
+rt/tst-timer4
+rt/tst-timer5
+posix/tst-waitid
+
+# Should be removed when bug #582787 is fixed
+stdio-common/tstdiomisc
+
+# Should be removed when bug #561203 is fixed
+nptl/tst-fork1

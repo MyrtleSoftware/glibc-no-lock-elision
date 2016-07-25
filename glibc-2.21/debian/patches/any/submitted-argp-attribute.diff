@@ -1,0 +1,115 @@
+2014-06-03  Ondřej Bílka  <neleai@seznam.cz>
+
+	* argp/argp-fmtstream.h (_GL_ATTRIBUTE_FORMAT): Define.
+	(argp_error, argp_failure): Use _GL_ATTRIBUTE_FORMAT.
+	* argp/argp.h (__argp_fmtstream_printf): Likewise.
+
+diff --git a/argp/argp-fmtstream.h b/argp/argp-fmtstream.h
+index 1ed2834..fc07d91 100644
+--- a/argp/argp-fmtstream.h
++++ b/argp/argp-fmtstream.h
+@@ -29,19 +29,16 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
+-#ifndef __attribute__
+-/* This feature is available in gcc versions 2.5 and later.  */
+-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5) || \
+-  defined __STRICT_ANSI__
+-#  define __attribute__(Spec) /* empty */
+-# endif
+-/* The __-protected variants of `format' and `printf' attributes
+-   are accepted by gcc versions 2.6.4 (effectively 2.7) and later.  */
+-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7) || \
+-  defined __STRICT_ANSI__
+-#  define __format__ format
+-#  define __printf__ printf
+-# endif
++/* The __attribute__ feature is available in gcc versions 2.5 and later.
++   The __-protected variants of the attributes 'format' and 'printf' are
++   accepted by gcc versions 2.6.4 (effectively 2.7) and later.
++   We enable _GL_ATTRIBUTE_FORMAT only if these are supported too, because
++   gnulib and libintl do '#define printf __printf__' when they override
++   the 'printf' function.  */
++#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
++# define _GL_ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
++#else
++# define _GL_ATTRIBUTE_FORMAT(spec) /* empty */
+ #endif
+ 
+ #if defined (__GNU_LIBRARY__) && defined (HAVE_LINEWRAP_H)
+@@ -130,10 +127,10 @@ extern void argp_fmtstream_free (argp_fmtstream_t __fs);
+ 
+ extern ssize_t __argp_fmtstream_printf (argp_fmtstream_t __fs,
+ 					const char *__fmt, ...)
+-     __attribute__ ((__format__ (printf, 2, 3)));
++     _GL_ATTRIBUTE_FORMAT ((printf, 2, 3));
+ extern ssize_t argp_fmtstream_printf (argp_fmtstream_t __fs,
+ 				      const char *__fmt, ...)
+-     __attribute__ ((__format__ (printf, 2, 3)));
++     _GL_ATTRIBUTE_FORMAT ((printf, 2, 3));
+ 
+ extern int __argp_fmtstream_putc (argp_fmtstream_t __fs, int __ch);
+ extern int argp_fmtstream_putc (argp_fmtstream_t __fs, int __ch);
+diff --git a/argp/argp.h b/argp/argp.h
+index 0868228..6a1cc1b 100644
+--- a/argp/argp.h
++++ b/argp/argp.h
+@@ -35,19 +35,16 @@
+ # define __NTH(fct) fct __THROW
+ #endif
+ 
+-#ifndef __attribute__
+-/* This feature is available in gcc versions 2.5 and later.  */
+-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5) || \
+-  defined __STRICT_ANSI__
+-#  define __attribute__(Spec) /* empty */
+-# endif
+-/* The __-protected variants of `format' and `printf' attributes
+-   are accepted by gcc versions 2.6.4 (effectively 2.7) and later.  */
+-# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7) || \
+-  defined __STRICT_ANSI__
+-#  define __format__ format
+-#  define __printf__ printf
+-# endif
++/* The __attribute__ feature is available in gcc versions 2.5 and later.
++   The __-protected variants of the attributes 'format' and 'printf' are
++   accepted by gcc versions 2.6.4 (effectively 2.7) and later.
++   We enable _GL_ATTRIBUTE_FORMAT only if these are supported too, because
++   gnulib and libintl do '#define printf __printf__' when they override
++   the 'printf' function.  */
++#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
++# define _GL_ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
++#else
++# define _GL_ATTRIBUTE_FORMAT(spec) /* empty */
+ #endif
+ 
+ /* GCC 2.95 and later have "__restrict"; C99 compilers have
+@@ -503,10 +500,10 @@ extern void __argp_usage (const struct argp_state *__state);
+    message, then exit (1).  */
+ extern void argp_error (const struct argp_state *__restrict __state,
+ 			const char *__restrict __fmt, ...)
+-     __attribute__ ((__format__ (__printf__, 2, 3)));
++     _GL_ATTRIBUTE_FORMAT ((__printf__, 2, 3));
+ extern void __argp_error (const struct argp_state *__restrict __state,
+ 			  const char *__restrict __fmt, ...)
+-     __attribute__ ((__format__ (__printf__, 2, 3)));
++    _GL_ATTRIBUTE_FORMAT ((__printf__, 2, 3));
+ 
+ /* Similar to the standard gnu error-reporting function error(), but will
+    respect the ARGP_NO_EXIT and ARGP_NO_ERRS flags in STATE, and will print
+@@ -519,11 +516,11 @@ extern void __argp_error (const struct argp_state *__restrict __state,
+ extern void argp_failure (const struct argp_state *__restrict __state,
+ 			  int __status, int __errnum,
+ 			  const char *__restrict __fmt, ...)
+-     __attribute__ ((__format__ (__printf__, 4, 5)));
++     _GL_ATTRIBUTE_FORMAT ((__printf__, 4, 5));
+ extern void __argp_failure (const struct argp_state *__restrict __state,
+ 			    int __status, int __errnum,
+ 			    const char *__restrict __fmt, ...)
+-     __attribute__ ((__format__ (__printf__, 4, 5)));
++     _GL_ATTRIBUTE_FORMAT ((__printf__, 4, 5));
+ 
+ /* Returns true if the option OPT is a valid short option.  */
+ extern int _option_is_short (const struct argp_option *__opt) __THROW;
+

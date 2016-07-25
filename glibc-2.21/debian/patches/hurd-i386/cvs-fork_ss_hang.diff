@@ -1,0 +1,31 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Fix hang on fork
+
+If e.g. a signal is being received while we are running fork(), the signal
+thread may be having our ss lock when we make the space copy, and thus in the
+child we can not take the ss lock any more.
+
+* sysdeps/mach/hurd/fork.c (__fork): Lock SS->lock around __proc_dostop() call.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ sysdeps/mach/hurd/fork.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/sysdeps/mach/hurd/fork.c
++++ b/sysdeps/mach/hurd/fork.c
+@@ -130,9 +130,13 @@ __fork (void)
+       ports_locked = 1;
+ 
+ 
++      /* Keep our SS locked while stopping other threads, so they don't get a
++       * chance to be having it locked in the copied space.  */
++      __spin_lock(&ss->lock);
+       /* Stop all other threads while copying the address space,
+ 	 so nothing changes.  */
+       err = __proc_dostop (_hurd_ports[INIT_PORT_PROC].port, ss->thread);
++      __spin_unlock(&ss->lock);
+       if (!err)
+ 	{
+ 	  stopped = 1;

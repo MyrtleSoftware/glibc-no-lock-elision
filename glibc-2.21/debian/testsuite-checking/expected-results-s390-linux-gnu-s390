@@ -1,0 +1,11 @@
+#
+# Allowed failures for s390-linux-gnu-s390
+#
+posix/annexc
+elf/check-localplt
+nptl/tst-cancel17
+nptl/tst-cancelx17
+rt/tst-cpuclock2
+rt/tst-cputimer1
+rt/tst-timer
+posix/tst-waitid

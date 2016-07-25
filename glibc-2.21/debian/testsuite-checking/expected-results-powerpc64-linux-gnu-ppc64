@@ -1,0 +1,14 @@
+#
+# Allowed failures for powerpc64-linux-gnu-ppc64
+#
+posix/annexc
+elf/check-execstack
+elf/check-localplt
+debug/tst-backtrace5
+debug/tst-backtrace6
+rt/tst-cpuclock2
+rt/tst-mqueue5
+rt/tst-timer
+posix/tst-waitid
+misc/tst-writev
+rt/tst-cputimer1
