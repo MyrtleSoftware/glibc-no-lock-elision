@@ -1,6 +1,6 @@
 libc_rtlddir = /lib64
 libc_extra_cflags = -O3
-extra_config_options = --enable-multi-arch --enable-lock-elision
+extra_config_options = --enable-multi-arch --disable-lock-elision
 
 # build 32-bit (i386) alternative library
 GLIBC_MULTILIB_PASSES += i386
