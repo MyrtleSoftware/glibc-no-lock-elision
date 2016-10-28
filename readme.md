@@ -20,6 +20,13 @@ the package for you!
 
 ## Installing
 
+### Ubuntu PPA
+
+Philipp Wagner has created an Ubuntu PPA with this fix in which can be found
+here: https://launchpad.net/~imphil/+archive/ubuntu/glibc-no-lockelision
+
+### Prebuilt .deb files
+
 Prebuilt versions of these files are available on the releases page of this
 repo.
 
