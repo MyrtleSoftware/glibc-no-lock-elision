@@ -70,3 +70,22 @@ fakeroot dpkg-buildpackage -uc -us
 ```
 
 The `.deb` files will have been placed in `..`
+
+## Other program suffering from this issue
+
+The D2XX driver for some FTDI chips (http://www.ftdichip.com/Drivers/D2XX.htm) seems to have the very same problem. It crashes with this Stack Trace:
+
+```
+#0 __lll_unlock_elision (lock=0x7fffd8000de8, private=0) at ../sysdeps/unix/sysv/linux/x86/elision-unlock.c:29
+#1 0x00007fffe5ef812f in EventDestroy (pE=0x7fffd8000de8) at Event.c:28
+#2 0x00007fffe5ef257e in FT_Close (ftHandle=0x7fffd8000ae0) at ftd2xx.c:1813
+#3 0x00007fffe6354d1d in LIBFTD2XX::Close(void*) () from /usr/local/lib64/digilent/adept/libdpcomm.so.2
+#4 0x00007fffe6351ae6 in FTDIC::FEnumAndUpdateCache() () from /usr/local/lib64/digilent/adept/libdpcomm.so.2
+#5 0x00007fffe634fb73 in FTDIC::FEnum(int, int, unsigned int, void*, DVCMG*) () from /usr/local/lib64/digilent/adept/libdpcomm.so.2
+#6 0x00007fffe634deec in ENMMG::DoEnumThread() () from /usr/local/lib64/digilent/adept/libdpcomm.so.2
+#7 0x00007fffe634d499 in EnumThread(void*) () from /usr/local/lib64/digilent/adept/libdpcomm.so.2
+#8 0x00007fffeea1f70a in start_thread (arg=0x7fffdffff700) at pthread_create.c:333
+#9 0x00007fffee03582d in clone () at ../sysdeps/unix/sysv/linux/x86_64/clone.S:109
+```
+
+Observed in Xilinx Impact while trying to program a Nexys Video.
