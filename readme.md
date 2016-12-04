@@ -73,6 +73,8 @@ The `.deb` files will have been placed in `..`
 
 ## Other program suffering from this issue
 
+### The D2XX driver for some FTDI chips
+
 The D2XX driver for some FTDI chips (http://www.ftdichip.com/Drivers/D2XX.htm) seems to have the very same problem. It crashes with this Stack Trace:
 
 ```
@@ -89,3 +91,22 @@ The D2XX driver for some FTDI chips (http://www.ftdichip.com/Drivers/D2XX.htm) s
 ```
 
 Observed in Xilinx Impact while trying to program a Nexys Video.
+
+### Digilent Inc's Waveforms 2015
+
+See this thread: https://forum.digilentinc.com/topic/2936-waveforms-2015-segmentation-fault-ubuntu-16041-x86-64-analog-discovery-1-analog-discovery-2/
+
+Digilent Inc's Waveforms 2015 crashes with this stack trace:
+
+```
+#0  __lll_unlock_elision (lock=0x7fff5c0281f8, private=0) at ../sysdeps/unix/sysv/linux/x86/elision-unlock.c:29
+#1  0x00007fff6146b12f in EventDestroy () from /usr/lib64/digilent/adept/libftd2xx.so
+#2  0x00007fff6146557e in FT_Close () from /usr/lib64/digilent/adept/libftd2xx.so
+#3  0x00007fffed590a11 in ?? () from /usr/lib64/digilent/adept/libdpcomm.so.2
+#4  0x00007fffed58b29b in ?? () from /usr/lib64/digilent/adept/libdpcomm.so.2
+#5  0x00007fffed5876f8 in ?? () from /usr/lib64/digilent/adept/libdpcomm.so.2
+#6  0x00007fffed5853d6 in ?? () from /usr/lib64/digilent/adept/libdpcomm.so.2
+#7  0x00007fffed5848dc in ?? () from /usr/lib64/digilent/adept/libdpcomm.so.2
+#8  0x00007ffff573b70a in start_thread (arg=0x7fff6267f700) at pthread_create.c:333
+#9  0x00007ffff4bd082d in clone () at ../sysdeps/unix/sysv/linux/x86_64/clone.S:109
+```
