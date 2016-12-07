@@ -1,5 +1,7 @@
 # glibc without lock-elision
 
+This shouldn't be needed with Ubuntu 16.04 or above, see the relavent launchpad issue: https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/1642390
+
 **Fiddling with libc has the potential to break your system. If you don't
 understand 100% what's going on here, please talk to someone who does.**
 
